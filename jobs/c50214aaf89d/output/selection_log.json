@@ -1,0 +1,333 @@
+{
+  "jd_requirements": [
+    "Motion control for actuator types (stepper, servo, brushed/brushless DC)",
+    "Python and Embedded C/C++",
+    "Feedback control systems",
+    "Complex embedded systems",
+    "Computer vision (architecture, development, integration, testing)",
+    "Communication protocols (I2C, SPI, UART)",
+    "Robust perception/CV in high-speed low-latency applications",
+    "Wireless communication protocols (Wi-Fi, 4G, Bluetooth, MQTT)",
+    "Electronics prototyping and PCB design",
+    "Cross-functional collaboration",
+    "Embedded systems documentation and testing"
+  ],
+  "jd_keywords": [
+    "embedded systems",
+    "motion control",
+    "computer vision",
+    "feedback control",
+    "communication protocols"
+  ],
+  "selected_projects": [
+    {
+      "project": "ROBOCON",
+      "bullets": [
+        {
+          "source_id": "ROBOCON-line67",
+          "text": "Developed embedded C firmware for STM32F407, enabling CAN-based motor control, BLE remote communication, and PID position control with +/-2 mm tracking error for an omnidirectional mobile robot.",
+          "why_present": true,
+          "how_present": true,
+          "transferable": false,
+          "impact_gap": false,
+          "edits": []
+        },
+        {
+          "source_id": "ROBOCON-line71",
+          "text": "Implemented a custom UART protocol with headers, footers, and float unpacking; used DMA + interrupts for non-blocking 100Hz updates of 6-DoF data, with <0.2% error rate.",
+          "why_present": true,
+          "how_present": true,
+          "transferable": false,
+          "impact_gap": false,
+          "edits": []
+        },
+        {
+          "source_id": "ROBOCON-line73",
+          "text": "Developed and tuned a dual-mode chassis control architecture with three PID loops managing translation and orientation, achieving <1.2s error convergence and 40% improvement in directional stability.",
+          "why_present": true,
+          "how_present": true,
+          "transferable": false,
+          "impact_gap": false,
+          "edits": []
+        },
+        {
+          "source_id": "ROBOCON-line69",
+          "text": "Designed a modular PID-based navigation system on STM32 with inverse kinematics and yaw compensation, achieving omnidirectional motion and +/-0.1% global localization accuracy.",
+          "why_present": true,
+          "how_present": true,
+          "transferable": false,
+          "impact_gap": false,
+          "edits": []
+        }
+      ]
+    },
+    {
+      "project": "Crane",
+      "bullets": [
+        {
+          "source_id": "Crane-line89",
+          "text": "Designed a compact, low-power crane system with ESP32-based Wi-Fi remote control, enabling low-latency communication and autonomous coordination across multiple devices, achieving over 95% task repeatability.",
+          "why_present": true,
+          "how_present": true,
+          "transferable": false,
+          "impact_gap": false,
+          "edits": []
+        },
+        {
+          "source_id": "Crane-line91",
+          "text": "Independently developed an STM32-based control system using fuzzy PID algorithms for closed-loop stepper motor control, achieving +/-1 mm positioning accuracy.",
+          "why_present": true,
+          "how_present": true,
+          "transferable": false,
+          "impact_gap": false,
+          "edits": []
+        },
+        {
+          "source_id": "Crane-line101",
+          "text": "Consolidated five functional boards into a single 4-layer PCB with KiCad, integrating control, power, and communication modules; reduced overall footprint by 40% and verified signal integrity via 100-MHz oscilloscope.",
+          "why_present": true,
+          "how_present": true,
+          "transferable": false,
+          "impact_gap": false,
+          "edits": []
+        },
+        {
+          "source_id": "Crane-line107",
+          "text": "Designed a multi-servo gripper system with ultrasonic radar for 360-degree object detection, capable of grasping up to 3 objects simultaneously.",
+          "why_present": true,
+          "how_present": true,
+          "transferable": false,
+          "impact_gap": false,
+          "edits": []
+        }
+      ]
+    },
+    {
+      "project": "LIFT",
+      "bullets": [
+        {
+          "source_id": "LIFT-line9",
+          "text": "Integrated OptiTrack motion capture system with robotic platform, achieving <1 mm position accuracy and <10 ms latency, supporting real-time position feedback for closed-loop control in indoor environments.",
+          "why_present": true,
+          "how_present": true,
+          "transferable": true,
+          "transferable_target": "Computer vision / real-time perception",
+          "impact_gap": false,
+          "edits": []
+        },
+        {
+          "source_id": "LIFT-line11",
+          "text": "Developed a ROS2-based robotic system integrating a simulator and MPC controller, enabling precise obstacle avoidance and full trajectory completion with real-time state logging.",
+          "why_present": true,
+          "how_present": true,
+          "transferable": false,
+          "impact_gap": false,
+          "edits": []
+        }
+      ]
+    },
+    {
+      "project": "Xiaoxian",
+      "bullets": [
+        {
+          "source_id": "Xiaoxian-line119",
+          "text": "Developed control programs for a six-axis CRP2 robotic arm using embedded C and ladder logic, enabling automated multi-axis motion for fuel rod testing.",
+          "why_present": true,
+          "how_present": true,
+          "transferable": false,
+          "impact_gap": false,
+          "edits": []
+        },
+        {
+          "source_id": "Xiaoxian-line117",
+          "text": "Designed an STM32F103-based gateway to enable Modbus RTU communication between the PC and robotic controller, ensuring stable and real-time data exchange.",
+          "why_present": true,
+          "how_present": true,
+          "transferable": false,
+          "impact_gap": false,
+          "edits": []
+        },
+        {
+          "source_id": "Xiaoxian-line127",
+          "text": "Proposed and implemented a magnetically-triggered encoder-based imaging system to replace low-precision pulse triggering, ensuring +/-1mm positional accuracy and reducing point-cloud data loss by 30%.",
+          "why_present": true,
+          "how_present": true,
+          "transferable": true,
+          "transferable_target": "Computer vision / perception systems",
+          "impact_gap": false,
+          "edits": []
+        }
+      ]
+    }
+  ],
+  "rejected_overlaps": [
+    {
+      "bullet": "ROBOCON-line51: Led mechanical design of 3 robots for a national robotics competition...",
+      "reason": "Overlap tag [2] with lines 59, 65, 79. Mechanical design focus less relevant than embedded bullets for this JD.",
+      "kept_instead": "None kept from [2] group; embedded-focused bullets selected instead."
+    },
+    {
+      "bullet": "ROBOCON-line59: Oversaw part sourcing, assembly, testing and iteration under DFA principles...",
+      "reason": "Overlap tag [2] with line 51, 65, 79. DFA/assembly focus less relevant than embedded systems.",
+      "kept_instead": "N/A"
+    },
+    {
+      "bullet": "ROBOCON-line65: Led end-to-end mechanical development...",
+      "reason": "Overlap tag [2]. Mechanical development focus; embedded bullets are stronger JD matches.",
+      "kept_instead": "N/A"
+    },
+    {
+      "bullet": "ROBOCON-line79: Managed three interdisciplinary teams over a six-month project...",
+      "reason": "Overlap tag [2]. Management focus; embedded skills more critical for this role.",
+      "kept_instead": "N/A"
+    },
+    {
+      "bullet": "LIFT-line13: Led a 5-member cross-functional team...achieving 100% integration...",
+      "reason": "Overlap tag [1] with line 15. Line 15 chosen for stronger deliverable framing.",
+      "kept_instead": "LIFT-line15"
+    },
+    {
+      "bullet": "LIFT-line3: Collaboratively designed a modular foldable robotic arm in Autodesk Fusion...",
+      "reason": "Overlap tag [7] with line 17. Mechanical design focus less relevant than controls/vision bullets.",
+      "kept_instead": "N/A"
+    },
+    {
+      "bullet": "LIFT-line17: Handled mechanical design via SolidWorks and Autodesk Fusion...",
+      "reason": "Overlap tag [7] with line 3. Mechanical design focus; controls bullets prioritized.",
+      "kept_instead": "N/A"
+    },
+    {
+      "bullet": "Crane-line85: Built and programmed a compact mechatronic crane...",
+      "reason": "Overlap tag [4] with lines 87, 89. Line 89 selected for ESP32/Wi-Fi embedded detail.",
+      "kept_instead": "Crane-line89"
+    },
+    {
+      "bullet": "Crane-line87: Developed a compact crane prototype scaled from real industrial models...",
+      "reason": "Overlap tag [4] with line 89. Line 89 has stronger embedded systems detail.",
+      "kept_instead": "Crane-line89"
+    },
+    {
+      "bullet": "Crane-line95: Enhanced the crane structure in SolidWorks with FEA. Independently constructed STM32-based control circuitry and PCB...",
+      "reason": "Overlap tag [5] with lines 91, 99. Line 91 chosen for direct fuzzy PID + stepper motor match.",
+      "kept_instead": "Crane-line91"
+    },
+    {
+      "bullet": "Crane-line99: Collaborated with industry engineers to migrate fuzzy PID logic...to a PLC platform...",
+      "reason": "Overlap tag [5] with line 91. Line 91 is more directly relevant to embedded control.",
+      "kept_instead": "Crane-line91"
+    }
+  ],
+  "unmatched_jd_gaps": [
+    "Direct computer vision experience (camera-based CV algorithms, OpenCV, image processing pipelines) -- candidate has transferable experience via OptiTrack and encoder-based imaging but no direct CV algorithm development",
+    "Machine learning experience -- no source bullets available",
+    "4G/MQTT wireless protocol experience -- only Wi-Fi and BLE available"
+  ],
+  "flags_for_user": [
+    "Computer vision is a core JD requirement but candidate's direct CV experience is limited; OptiTrack and encoder-imaging are transferable but not traditional CV",
+    "No machine learning bullets available in database",
+    "LIFT-line15 (team leadership) has why_how_gap: how_present is false"
+  ],
+  "trim_priority": [
+    {
+      "rank": 1,
+      "project": "ROBOCON",
+      "source_id": "ROBOCON-line67",
+      "text": "Developed embedded C firmware for STM32F407, enabling CAN-based motor control, BLE remote...",
+      "removable": false
+    },
+    {
+      "rank": 2,
+      "project": "ROBOCON",
+      "source_id": "ROBOCON-line71",
+      "text": "Implemented a custom UART protocol with headers, footers, and float unpacking; used DMA +...",
+      "removable": false
+    },
+    {
+      "rank": 3,
+      "project": "Crane",
+      "source_id": "Crane-line91",
+      "text": "Independently developed an STM32-based control system using fuzzy PID algorithms for close...",
+      "removable": false
+    },
+    {
+      "rank": 4,
+      "project": "ROBOCON",
+      "source_id": "ROBOCON-line73",
+      "text": "Developed and tuned a dual-mode chassis control architecture with three PID loops managin...",
+      "removable": true
+    },
+    {
+      "rank": 5,
+      "project": "Crane",
+      "source_id": "Crane-line89",
+      "text": "Designed a compact, low-power crane system with ESP32-based Wi-Fi remote control, enablin...",
+      "removable": false
+    },
+    {
+      "rank": 6,
+      "project": "LIFT",
+      "source_id": "LIFT-line9",
+      "text": "Integrated OptiTrack motion capture system with robotic platform, achieving <1 mm positio...",
+      "removable": false
+    },
+    {
+      "rank": 7,
+      "project": "Xiaoxian",
+      "source_id": "Xiaoxian-line119",
+      "text": "Developed control programs for a six-axis CRP2 robotic arm using embedded C and ladder lo...",
+      "removable": false
+    },
+    {
+      "rank": 8,
+      "project": "Xiaoxian",
+      "source_id": "Xiaoxian-line117",
+      "text": "Designed an STM32F103-based gateway to enable Modbus RTU communication between the PC and...",
+      "removable": false
+    },
+    {
+      "rank": 9,
+      "project": "Crane",
+      "source_id": "Crane-line101",
+      "text": "Consolidated five functional boards into a single 4-layer PCB with KiCad, integrating con...",
+      "removable": true
+    },
+    {
+      "rank": 10,
+      "project": "Xiaoxian",
+      "source_id": "Xiaoxian-line127",
+      "text": "Proposed and implemented a magnetically-triggered encoder-based imaging system to replace ...",
+      "removable": true
+    },
+    {
+      "rank": 11,
+      "project": "LIFT",
+      "source_id": "LIFT-line11",
+      "text": "Developed a ROS2-based robotic system integrating a simulator and MPC controller, enablin...",
+      "removable": false
+    },
+    {
+      "rank": 12,
+      "project": "ROBOCON",
+      "source_id": "ROBOCON-line69",
+      "text": "Designed a modular PID-based navigation system on STM32 with inverse kinematics and yaw c...",
+      "removable": true
+    },
+    {
+      "rank": 13,
+      "project": "Crane",
+      "source_id": "Crane-line107",
+      "text": "Designed a multi-servo gripper system with ultrasonic radar for 360-degree object detectio...",
+      "removable": true
+    }
+  ],
+  "trimmed_by_packager": [
+    {
+      "source_id": "LIFT-line15",
+      "project": "LIFT",
+      "text": "Led a 5-member cross-functional team to develop a hybrid flying-driving robot platform, delivering a fully functional prototype within 10 weeks.",
+      "reason": "page overflow",
+      "trim_rank_at_removal": 14,
+      "trim_pass": 1
+    }
+  ]
+}

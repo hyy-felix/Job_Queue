@@ -1,0 +1,535 @@
+warning: The `tool.uv.dev-dependencies` field (used in `/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/pyproject.toml`) is deprecated and will be removed in a future release; use `dependency-groups.dev` instead
+INFO     [service] Using anonymized telemetry, see https://docs.browser-use.com/development/monitoring/telemetry.
+INFO     [Agent] 🔗 Found URL in task: https://www.linkedin.com/jobs/collections/top-applicant/?currentJobId=4382353070, adding as initial action...
+INFO     [Agent] [34m🎯 Task: 
+    Go to this URL: https://www.linkedin.com/jobs/collections/top-applicant/?currentJobId=4382353070
+
+    IMPORTANT: You MUST read the entire page content carefully before responding.
+    Do NOT return null values without first scrolling through and reading the page.
+
+    After reading the full page, extract these fields:
+    1. role_title: The exact job title shown on the page
+    2. company_name: The company name
+    3. salary: Salary or compensation info (null ONLY if truly not listed anywhere)
+    4. location: Job location (city, state, remote, etc.)
+    5. job_description: Copy the COMPLETE job description text from the page.
+       Include ALL sections: overview, responsibilities, requirements,
+       qualifications, benefits. This must be comprehensive — multiple paragraphs.
+       Do NOT summarize. Copy the actual text from the page.
+
+    If the page shows a 404 error or the job posting is not found, set
+    job_description to a message explaining the page was not found.
+
+    Return ONLY a valid JSON object with these exact keys:
+    role_title, company_name, salary, location, job_description
+
+    No markdown formatting. No explanation. Just the JSON.
+    [0m
+INFO     [Agent] 📦 Newer version available: 0.12.5 (current: 0.12.3). Upgrade with: uv add browser-use==0.12.5
+INFO     [Agent] Starting a browser-use agent with version 0.12.3, with provider=google and model=gemini-2.0-flash
+INFO     [Agent]   ▶️   [34mnavigate[0m: [35murl[0m: https://www.linkedin.com/jobs/collections/top-applicant/?currentJobId=4382353070, [35mnew_tab[0m: False
+ERROR    [BrowserSession] ❌ No lifecycle events received for https://www.linkedin.com/jobs/collections/top-applicant/?currentJobId=4382353070 after 8379ms! Monitoring may have failed. Target: 6ABE1ABD
+INFO     [tools] 🔗 Navigated to https://www.linkedin.com/jobs/collections/top-applicant/?currentJobId=4382353070
+WARNING  [bubus] ⚠️ EventBus_467ba91e🟢(⏳ 0 | ▶️ 2 | ✅ 16 ➡️ 31 👂) handler browser_use.browser.watchdog_base.DOMWatchdog.on_BrowserStateRequestEvent() has been running for >15s on event. Possible slow processing or deadlock.
+(handler could be trying to await its own result or could be blocked by another async task).
+browser_use.browser.watchdog_base.DOMWatchdog.on_BrowserStateRequestEvent(?▶ BrowserStateRequestEvent#895c 🏃)
+WARNING  [bubus] ⚠️ EventBus_467ba91e🟢(⏳ 0 | ▶️ 2 | ✅ 16 ➡️ 31 👂) handler browser_use.browser.watchdog_base.ScreenshotWatchdog.on_ScreenshotEvent() has been running for >15s on event. Possible slow processing or deadlock.
+(handler could be trying to await its own result or could be blocked by another async task).
+browser_use.browser.watchdog_base.ScreenshotWatchdog.on_ScreenshotEvent(?▶ ScreenshotEvent#3ce7 🏃)
+WARNING  [bubus] ================================================================================
+WARNING  [bubus] ⏱️  TIMEOUT ERROR - Handling took more than 15.0s for EventBus_467ba91e.browser_use.browser.watchdog_base.ScreenshotWatchdog.on_ScreenshotEvent(?▶ ScreenshotEvent#3ce7 ✅)
+WARNING  [bubus] ================================================================================
+WARNING  [bubus] 📣 BrowserStateRequestEvent#895c                                       [93m15s[0m
+WARNING  [bubus]    ☑️ browser_use.browser.watchdog_base.DownloadsWatchdog.on_BrowserStateRequestEvent(#895c)    [92m 0s[0m/30s   ✓
+WARNING  [bubus]       📣 NavigationCompleteEvent#f785                                  [93m15s[0m
+WARNING  [bubus]          ☑️ browser_use.browser.watchdog_base.DownloadsWatchdog.on_NavigationCompleteEvent(#f785)    [92m 0s[0m/30s   ✓
+WARNING  [bubus]          ☑️ browser_use.browser.watchdog_base.SecurityWatchdog.on_NavigationCompleteEvent(#f785)    [92m 0s[0m/30s   ✓
+WARNING  [bubus]    ➡️ browser_use.browser.watchdog_base.DOMWatchdog.on_BrowserStateRequestEvent(#895c) ⏳ [93m15s[0m/30s  
+WARNING  [bubus]       📣 ScreenshotEvent#3ce7                                          [91m15s[0m
+WARNING  [bubus]          ⏰ browser_use.browser.watchdog_base.ScreenshotWatchdog.on_ScreenshotEvent(#3ce7) ⌛️ [91m15s[0m/[91m15s[0m   ⬅️ [91mTIMEOUT HERE[0m ⏰
+WARNING  [bubus] 
+================================================================================
+
+WARNING  [BrowserSession] 📸 Clean screenshot timed out after 6 seconds - no handler registered or slow page?
+ERROR    [BrowserSession] Exception in background task [capture_screenshot]: TimeoutError: Event handler browser_use.browser.watchdog_base.ScreenshotWatchdog.on_ScreenshotEvent#2464(?▶ ScreenshotEvent#3ce7 🏃) timed out after 15.0s
+Traceback (most recent call last):
+  File "/Users/felixhyy/.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/tasks.py", line 520, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/browser_use/browser/watchdog_base.py", line 153, in unique_handler
+    result = await actual_handler(event)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/browser_use/observability.py", line 73, in async_wrapper
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/browser_use/browser/watchdogs/screenshot_watchdog.py", line 78, in on_ScreenshotEvent
+    result = await cdp_session.cdp_client.send.Page.captureScreenshot(params=params, session_id=cdp_session.session_id)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/.venv/lib/python3.12/site-packages/cdp_use/cdp/page/library.py", line 137, in captureScreenshot
+    await self._client.send_raw(
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/.venv/lib/python3.12/site-packages/cdp_use/client.py", line 389, in send_raw
+    return await future
+           ^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/.venv/lib/python3.12/site-packages/bubus/service.py", line 1128, in execute_handler
+    result_value: Any = await asyncio.wait_for(handler_task, timeout=event_result.timeout)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/felixhyy/.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/tasks.py", line 519, in wait_for
+    async with timeouts.timeout(timeout):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/felixhyy/.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/timeouts.py", line 115, in __aexit__
+    raise TimeoutError from exc_val
+TimeoutError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/browser_use/utils.py", line 384, in wrapper
+    result = await func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/browser_use/observability.py", line 73, in async_wrapper
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/browser_use/browser/watchdogs/dom_watchdog.py", line 696, in _capture_clean_screenshot
+    screenshot_b64 = await screenshot_event.event_result(raise_if_any=True, raise_if_none=True)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/.venv/lib/python3.12/site-packages/bubus/models.py", line 574, in event_result
+    valid_results = await self.event_results_filtered(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/.venv/lib/python3.12/site-packages/bubus/models.py", line 516, in event_results_filtered
+    raise original_error
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/.venv/lib/python3.12/site-packages/bubus/models.py", line 490, in event_results_filtered
+    await event_result
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/.venv/lib/python3.12/site-packages/bubus/models.py", line 889, in wait_for_handler_to_complete_and_return_result
+    raise self.error if isinstance(self.error, BaseException) else Exception(self.error)  # pyright: ignore[reportUnnecessaryIsInstance]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/.venv/lib/python3.12/site-packages/bubus/service.py", line 1070, in _execute_handlers
+    await self.execute_handler(event, handler, timeout=timeout)
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/.venv/lib/python3.12/site-packages/bubus/service.py", line 1194, in execute_handler
+    raise handler_timeout_error from e
+TimeoutError: Event handler browser_use.browser.watchdog_base.ScreenshotWatchdog.on_ScreenshotEvent#2464(?▶ ScreenshotEvent#3ce7 🏃) timed out after 15.0s
+WARNING  [BrowserSession] 🔍 DOMWatchdog.on_BrowserStateRequestEvent: Clean screenshot failed: Event handler browser_use.browser.watchdog_base.ScreenshotWatchdog.on_ScreenshotEvent#2464(?▶ ScreenshotEvent#3ce7 🏃) timed out after 15.0s
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 1:
+INFO     [Agent]   ❔ Eval: Navigated to the URL. The page is still loading. Verdict: Incomplete
+INFO     [Agent]   🧠 Memory: The page is still loading. Need to wait before extracting information.
+INFO     [Agent]   [34m🎯 Next goal: Wait for the page to load completely.[0m
+INFO     [Agent]   ▶️   [34mwait[0m: [35mseconds[0m: 5
+INFO     [tools] 🕒 waited for 5 seconds
+INFO     [Agent] 📋 Plan updated with 0 steps
+WARNING  [bubus] ⚠️ EventBus_467ba91e🟢(⏳ 0 | ▶️ 2 | ✅ 19 ➡️ 31 👂) handler browser_use.browser.watchdog_base.DOMWatchdog.on_BrowserStateRequestEvent() has been running for >15s on event. Possible slow processing or deadlock.
+(handler could be trying to await its own result or could be blocked by another async task).
+browser_use.browser.watchdog_base.DOMWatchdog.on_BrowserStateRequestEvent(?▶ BrowserStateRequestEvent#adb0 🏃)
+WARNING  [bubus] ⚠️ EventBus_467ba91e🟢(⏳ 0 | ▶️ 2 | ✅ 19 ➡️ 31 👂) handler browser_use.browser.watchdog_base.ScreenshotWatchdog.on_ScreenshotEvent() has been running for >15s on event. Possible slow processing or deadlock.
+(handler could be trying to await its own result or could be blocked by another async task).
+browser_use.browser.watchdog_base.ScreenshotWatchdog.on_ScreenshotEvent(?▶ ScreenshotEvent#9b41 🏃)
+WARNING  [bubus] ================================================================================
+WARNING  [bubus] ⏱️  TIMEOUT ERROR - Handling took more than 15.0s for EventBus_467ba91e.browser_use.browser.watchdog_base.ScreenshotWatchdog.on_ScreenshotEvent(?▶ ScreenshotEvent#9b41 ✅)
+WARNING  [bubus] ================================================================================
+WARNING  [bubus] 📣 BrowserStateRequestEvent#adb0                                       [93m15s[0m
+WARNING  [bubus]    ☑️ browser_use.browser.watchdog_base.DownloadsWatchdog.on_BrowserStateRequestEvent(#adb0)    [92m 0s[0m/30s   ✓
+WARNING  [bubus]       📣 NavigationCompleteEvent#acf0                                  [93m15s[0m
+WARNING  [bubus]          ☑️ browser_use.browser.watchdog_base.DownloadsWatchdog.on_NavigationCompleteEvent(#acf0)    [92m 0s[0m/30s   ✓
+WARNING  [bubus]          ☑️ browser_use.browser.watchdog_base.SecurityWatchdog.on_NavigationCompleteEvent(#acf0)    [92m 0s[0m/30s   ✓
+WARNING  [bubus]    ➡️ browser_use.browser.watchdog_base.DOMWatchdog.on_BrowserStateRequestEvent(#adb0) ⏳ [93m15s[0m/30s  
+WARNING  [bubus]       📣 ScreenshotEvent#9b41                                          [91m15s[0m
+WARNING  [bubus]          ⏰ browser_use.browser.watchdog_base.ScreenshotWatchdog.on_ScreenshotEvent(#9b41) ⌛️ [91m15s[0m/[91m15s[0m   ⬅️ [91mTIMEOUT HERE[0m ⏰
+WARNING  [bubus] 
+================================================================================
+
+WARNING  [BrowserSession] 📸 Clean screenshot timed out after 6 seconds - no handler registered or slow page?
+ERROR    [BrowserSession] Exception in background task [capture_screenshot]: TimeoutError: Event handler browser_use.browser.watchdog_base.ScreenshotWatchdog.on_ScreenshotEvent#2464(?▶ ScreenshotEvent#9b41 🏃) timed out after 15.0s
+Traceback (most recent call last):
+  File "/Users/felixhyy/.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/tasks.py", line 520, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/browser_use/browser/watchdog_base.py", line 153, in unique_handler
+    result = await actual_handler(event)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/browser_use/observability.py", line 73, in async_wrapper
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/browser_use/browser/watchdogs/screenshot_watchdog.py", line 78, in on_ScreenshotEvent
+    result = await cdp_session.cdp_client.send.Page.captureScreenshot(params=params, session_id=cdp_session.session_id)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/.venv/lib/python3.12/site-packages/cdp_use/cdp/page/library.py", line 137, in captureScreenshot
+    await self._client.send_raw(
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/.venv/lib/python3.12/site-packages/cdp_use/client.py", line 389, in send_raw
+    return await future
+           ^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/.venv/lib/python3.12/site-packages/bubus/service.py", line 1128, in execute_handler
+    result_value: Any = await asyncio.wait_for(handler_task, timeout=event_result.timeout)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/felixhyy/.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/tasks.py", line 519, in wait_for
+    async with timeouts.timeout(timeout):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/felixhyy/.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/timeouts.py", line 115, in __aexit__
+    raise TimeoutError from exc_val
+TimeoutError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/browser_use/utils.py", line 384, in wrapper
+    result = await func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/browser_use/observability.py", line 73, in async_wrapper
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/browser_use/browser/watchdogs/dom_watchdog.py", line 696, in _capture_clean_screenshot
+    screenshot_b64 = await screenshot_event.event_result(raise_if_any=True, raise_if_none=True)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/.venv/lib/python3.12/site-packages/bubus/models.py", line 574, in event_result
+    valid_results = await self.event_results_filtered(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/.venv/lib/python3.12/site-packages/bubus/models.py", line 516, in event_results_filtered
+    raise original_error
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/.venv/lib/python3.12/site-packages/bubus/models.py", line 490, in event_results_filtered
+    await event_result
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/.venv/lib/python3.12/site-packages/bubus/models.py", line 889, in wait_for_handler_to_complete_and_return_result
+    raise self.error if isinstance(self.error, BaseException) else Exception(self.error)  # pyright: ignore[reportUnnecessaryIsInstance]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/.venv/lib/python3.12/site-packages/bubus/service.py", line 1070, in _execute_handlers
+    await self.execute_handler(event, handler, timeout=timeout)
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/.venv/lib/python3.12/site-packages/bubus/service.py", line 1194, in execute_handler
+    raise handler_timeout_error from e
+TimeoutError: Event handler browser_use.browser.watchdog_base.ScreenshotWatchdog.on_ScreenshotEvent#2464(?▶ ScreenshotEvent#9b41 🏃) timed out after 15.0s
+WARNING  [BrowserSession] 🔍 DOMWatchdog.on_BrowserStateRequestEvent: Clean screenshot failed: Event handler browser_use.browser.watchdog_base.ScreenshotWatchdog.on_ScreenshotEvent#2464(?▶ ScreenshotEvent#9b41 🏃) timed out after 15.0s
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 2:
+INFO     [Agent]   ❔ Eval: Waited for 5 seconds, but the page still appears to be loading. Verdict: Incomplete
+INFO     [Agent]   🧠 Memory: The page is still loading. Need to wait before extracting information.
+INFO     [Agent]   [34m🎯 Next goal: Wait for the page to load completely.[0m
+INFO     [Agent]   ▶️   [34mwait[0m: [35mseconds[0m: 5
+INFO     [tools] 🕒 waited for 5 seconds
+INFO     [Agent] 📋 Plan updated with 0 steps
+WARNING  [bubus] ⚠️ EventBus_467ba91e🟢(⏳ 0 | ▶️ 2 | ✅ 22 ➡️ 31 👂) handler browser_use.browser.watchdog_base.DOMWatchdog.on_BrowserStateRequestEvent() has been running for >15s on event. Possible slow processing or deadlock.
+(handler could be trying to await its own result or could be blocked by another async task).
+browser_use.browser.watchdog_base.DOMWatchdog.on_BrowserStateRequestEvent(?▶ BrowserStateRequestEvent#4495 🏃)
+WARNING  [bubus] ================================================================================
+WARNING  [bubus] ⏱️  TIMEOUT ERROR - Handling took more than 15.0s for EventBus_467ba91e.browser_use.browser.watchdog_base.ScreenshotWatchdog.on_ScreenshotEvent(?▶ ScreenshotEvent#a9c7 ✅)
+WARNING  [bubus] ================================================================================
+WARNING  [bubus] 📣 BrowserStateRequestEvent#4495                                       [93m15s[0m
+WARNING  [bubus]    ☑️ browser_use.browser.watchdog_base.DownloadsWatchdog.on_BrowserStateRequestEvent(#4495)    [92m 0s[0m/30s   ✓
+WARNING  [bubus]       📣 NavigationCompleteEvent#5f13                                  [93m15s[0m
+WARNING  [bubus]          ☑️ browser_use.browser.watchdog_base.DownloadsWatchdog.on_NavigationCompleteEvent(#5f13)    [92m 0s[0m/30s   ✓
+WARNING  [bubus]          ☑️ browser_use.browser.watchdog_base.SecurityWatchdog.on_NavigationCompleteEvent(#5f13)    [92m 0s[0m/30s   ✓
+WARNING  [bubus]    ➡️ browser_use.browser.watchdog_base.DOMWatchdog.on_BrowserStateRequestEvent(#4495) ⏳ [93m15s[0m/30s  
+WARNING  [bubus]       📣 ScreenshotEvent#a9c7                                          [91m15s[0m
+WARNING  [bubus]          ⏰ browser_use.browser.watchdog_base.ScreenshotWatchdog.on_ScreenshotEvent(#a9c7) ⌛️ [91m15s[0m/[91m15s[0m   ⬅️ [91mTIMEOUT HERE[0m ⏰
+WARNING  [bubus] 
+================================================================================
+
+WARNING  [BrowserSession] 📸 Clean screenshot timed out after 6 seconds - no handler registered or slow page?
+ERROR    [BrowserSession] Exception in background task [capture_screenshot]: TimeoutError: Event handler browser_use.browser.watchdog_base.ScreenshotWatchdog.on_ScreenshotEvent#2464(?▶ ScreenshotEvent#a9c7 🏃) timed out after 15.0s
+Traceback (most recent call last):
+  File "/Users/felixhyy/.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/tasks.py", line 520, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/browser_use/browser/watchdog_base.py", line 153, in unique_handler
+    result = await actual_handler(event)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/browser_use/observability.py", line 73, in async_wrapper
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/browser_use/browser/watchdogs/screenshot_watchdog.py", line 78, in on_ScreenshotEvent
+    result = await cdp_session.cdp_client.send.Page.captureScreenshot(params=params, session_id=cdp_session.session_id)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/.venv/lib/python3.12/site-packages/cdp_use/cdp/page/library.py", line 137, in captureScreenshot
+    await self._client.send_raw(
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/.venv/lib/python3.12/site-packages/cdp_use/client.py", line 389, in send_raw
+    return await future
+           ^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/.venv/lib/python3.12/site-packages/bubus/service.py", line 1128, in execute_handler
+    result_value: Any = await asyncio.wait_for(handler_task, timeout=event_result.timeout)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/felixhyy/.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/tasks.py", line 519, in wait_for
+    async with timeouts.timeout(timeout):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/felixhyy/.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/timeouts.py", line 115, in __aexit__
+    raise TimeoutError from exc_val
+TimeoutError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/browser_use/utils.py", line 384, in wrapper
+    result = await func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/browser_use/observability.py", line 73, in async_wrapper
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/browser_use/browser/watchdogs/dom_watchdog.py", line 696, in _capture_clean_screenshot
+    screenshot_b64 = await screenshot_event.event_result(raise_if_any=True, raise_if_none=True)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/.venv/lib/python3.12/site-packages/bubus/models.py", line 574, in event_result
+    valid_results = await self.event_results_filtered(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/.venv/lib/python3.12/site-packages/bubus/models.py", line 516, in event_results_filtered
+    raise original_error
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/.venv/lib/python3.12/site-packages/bubus/models.py", line 490, in event_results_filtered
+    await event_result
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/.venv/lib/python3.12/site-packages/bubus/models.py", line 889, in wait_for_handler_to_complete_and_return_result
+    raise self.error if isinstance(self.error, BaseException) else Exception(self.error)  # pyright: ignore[reportUnnecessaryIsInstance]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/.venv/lib/python3.12/site-packages/bubus/service.py", line 1070, in _execute_handlers
+    await self.execute_handler(event, handler, timeout=timeout)
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/.venv/lib/python3.12/site-packages/bubus/service.py", line 1194, in execute_handler
+    raise handler_timeout_error from e
+TimeoutError: Event handler browser_use.browser.watchdog_base.ScreenshotWatchdog.on_ScreenshotEvent#2464(?▶ ScreenshotEvent#a9c7 🏃) timed out after 15.0s
+WARNING  [BrowserSession] 🔍 DOMWatchdog.on_BrowserStateRequestEvent: Clean screenshot failed: Event handler browser_use.browser.watchdog_base.ScreenshotWatchdog.on_ScreenshotEvent#2464(?▶ ScreenshotEvent#a9c7 🏃) timed out after 15.0s
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 3:
+INFO     [Agent]   ❔ Eval: The page is still loading after waiting for 5 seconds. Verdict: Incomplete
+INFO     [Agent]   🧠 Memory: The page is still loading. I have waited for 10 seconds already. I will wait for another 5 seconds.
+INFO     [Agent]   [34m🎯 Next goal: Wait for the page to load completely.[0m
+INFO     [Agent]   ▶️   [34mwait[0m: [35mseconds[0m: 5
+INFO     [tools] 🕒 waited for 5 seconds
+WARNING  [bubus] ⚠️ EventBus_467ba91e🟢(⏳ 0 | ▶️ 2 | ✅ 25 ➡️ 31 👂) handler browser_use.browser.watchdog_base.DOMWatchdog.on_BrowserStateRequestEvent() has been running for >15s on event. Possible slow processing or deadlock.
+(handler could be trying to await its own result or could be blocked by another async task).
+browser_use.browser.watchdog_base.DOMWatchdog.on_BrowserStateRequestEvent(?▶ BrowserStateRequestEvent#81b9 🏃)
+WARNING  [bubus] ⚠️ EventBus_467ba91e🟢(⏳ 0 | ▶️ 2 | ✅ 25 ➡️ 31 👂) handler browser_use.browser.watchdog_base.ScreenshotWatchdog.on_ScreenshotEvent() has been running for >15s on event. Possible slow processing or deadlock.
+(handler could be trying to await its own result or could be blocked by another async task).
+browser_use.browser.watchdog_base.ScreenshotWatchdog.on_ScreenshotEvent(?▶ ScreenshotEvent#da0f 🏃)
+WARNING  [bubus] ================================================================================
+WARNING  [bubus] ⏱️  TIMEOUT ERROR - Handling took more than 15.0s for EventBus_467ba91e.browser_use.browser.watchdog_base.ScreenshotWatchdog.on_ScreenshotEvent(?▶ ScreenshotEvent#da0f ✅)
+WARNING  [bubus] ================================================================================
+WARNING  [bubus] 📣 BrowserStateRequestEvent#81b9                                       [93m15s[0m
+WARNING  [bubus]    ☑️ browser_use.browser.watchdog_base.DownloadsWatchdog.on_BrowserStateRequestEvent(#81b9)    [92m 0s[0m/30s   ✓
+WARNING  [bubus]       📣 NavigationCompleteEvent#6416                                  [93m15s[0m
+WARNING  [bubus]          ☑️ browser_use.browser.watchdog_base.DownloadsWatchdog.on_NavigationCompleteEvent(#6416)    [92m 0s[0m/30s   ✓
+WARNING  [bubus]          ☑️ browser_use.browser.watchdog_base.SecurityWatchdog.on_NavigationCompleteEvent(#6416)    [92m 0s[0m/30s   ✓
+WARNING  [bubus]    ➡️ browser_use.browser.watchdog_base.DOMWatchdog.on_BrowserStateRequestEvent(#81b9) ⏳ [93m15s[0m/30s  
+WARNING  [bubus]       📣 ScreenshotEvent#da0f                                          [91m15s[0m
+WARNING  [bubus]          ⏰ browser_use.browser.watchdog_base.ScreenshotWatchdog.on_ScreenshotEvent(#da0f) ⌛️ [91m15s[0m/[91m15s[0m   ⬅️ [91mTIMEOUT HERE[0m ⏰
+WARNING  [bubus] 
+================================================================================
+
+WARNING  [BrowserSession] 📸 Clean screenshot timed out after 6 seconds - no handler registered or slow page?
+ERROR    [BrowserSession] Exception in background task [capture_screenshot]: TimeoutError: Event handler browser_use.browser.watchdog_base.ScreenshotWatchdog.on_ScreenshotEvent#2464(?▶ ScreenshotEvent#da0f 🏃) timed out after 15.0s
+Traceback (most recent call last):
+  File "/Users/felixhyy/.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/tasks.py", line 520, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/browser_use/browser/watchdog_base.py", line 153, in unique_handler
+    result = await actual_handler(event)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/browser_use/observability.py", line 73, in async_wrapper
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/browser_use/browser/watchdogs/screenshot_watchdog.py", line 78, in on_ScreenshotEvent
+    result = await cdp_session.cdp_client.send.Page.captureScreenshot(params=params, session_id=cdp_session.session_id)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/.venv/lib/python3.12/site-packages/cdp_use/cdp/page/library.py", line 137, in captureScreenshot
+    await self._client.send_raw(
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/.venv/lib/python3.12/site-packages/cdp_use/client.py", line 389, in send_raw
+    return await future
+           ^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/.venv/lib/python3.12/site-packages/bubus/service.py", line 1128, in execute_handler
+    result_value: Any = await asyncio.wait_for(handler_task, timeout=event_result.timeout)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/felixhyy/.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/tasks.py", line 519, in wait_for
+    async with timeouts.timeout(timeout):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/felixhyy/.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/timeouts.py", line 115, in __aexit__
+    raise TimeoutError from exc_val
+TimeoutError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/browser_use/utils.py", line 384, in wrapper
+    result = await func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/browser_use/observability.py", line 73, in async_wrapper
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/browser_use/browser/watchdogs/dom_watchdog.py", line 696, in _capture_clean_screenshot
+    screenshot_b64 = await screenshot_event.event_result(raise_if_any=True, raise_if_none=True)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/.venv/lib/python3.12/site-packages/bubus/models.py", line 574, in event_result
+    valid_results = await self.event_results_filtered(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/.venv/lib/python3.12/site-packages/bubus/models.py", line 516, in event_results_filtered
+    raise original_error
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/.venv/lib/python3.12/site-packages/bubus/models.py", line 490, in event_results_filtered
+    await event_result
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/.venv/lib/python3.12/site-packages/bubus/models.py", line 889, in wait_for_handler_to_complete_and_return_result
+    raise self.error if isinstance(self.error, BaseException) else Exception(self.error)  # pyright: ignore[reportUnnecessaryIsInstance]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/.venv/lib/python3.12/site-packages/bubus/service.py", line 1070, in _execute_handlers
+    await self.execute_handler(event, handler, timeout=timeout)
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/.venv/lib/python3.12/site-packages/bubus/service.py", line 1194, in execute_handler
+    raise handler_timeout_error from e
+TimeoutError: Event handler browser_use.browser.watchdog_base.ScreenshotWatchdog.on_ScreenshotEvent#2464(?▶ ScreenshotEvent#da0f 🏃) timed out after 15.0s
+WARNING  [BrowserSession] 🔍 DOMWatchdog.on_BrowserStateRequestEvent: Clean screenshot failed: Event handler browser_use.browser.watchdog_base.ScreenshotWatchdog.on_ScreenshotEvent#2464(?▶ ScreenshotEvent#da0f 🏃) timed out after 15.0s
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 4:
+INFO     [Agent]   ❔ Eval: The page is still loading after waiting for 5 seconds. Verdict: Incomplete
+INFO     [Agent]   🧠 Memory: The page is taking a long time to load. I have waited for 20 seconds already. I will try to extract the information available on the page and then call the done action.
+INFO     [Agent]   [34m🎯 Next goal: Extract the information available on the page and then call the done action.[0m
+INFO     [Agent]   ▶️   [34mextract[0m: [35mquery[0m: role_title: The exact job title shown on the page
+company_name: The company name
+salary: Salary or compensation info (null ONLY if truly not listed an..., [35mextract_links[0m: False, [35mextract_images[0m: False, [35mstart_from_char[0m: 0, [35malready_collected[0m: []
+INFO     [tools] 📄 <url>
+https://www.linkedin.com/jobs/collections/top-applicant/?currentJobId=4382353070
+</url>
+<query>
+role_title: The exact job title shown on the page
+company_name: The company name
+salary: Salary or compensation info (null ONLY if truly not listed anywhere)
+location: Job location (city, state, remote, etc.)
+job_description: Copy the COMPLETE job description text from the page. Include ALL sections: overview, responsibilities, requirements, qualifications, benefits. This must be comprehensive — multiple paragraphs. Do NOT summarize. Copy the actual text from the page. If the page shows a 404 error or the job posting is not found, set job_description to a message explaining the page was not found.
+</query>
+<result>
+```json
+{
+"role_title": "Senior Robotics Prototype Engineer",
+"company_name": "Humanoid",
+"salary": "Competitive salary plus participation in our Stock Option Plan",
+"location": "Greater Boston",
+"job_description": "Humanoid is the first AI and robotics company in the UK, creating the world’s most advanced, reliable, commercially scalable, and safe humanoid robots. Our first humanoid robot HMND 01 is a next-gen labour automation unit, providing highly efficient services across various use cases, starting with industrial applications.\n\nOur Mission\n\nAt Humanoid we strive to create the world’s leading, commercially scalable, safe, and advanced humanoid robots that seamlessly integrate into daily life and amplify human capacity.\n\nWhat You’ll Do\n\n- Lead troubleshooting and resolution of complex electrical issues in prototype humanoid robots, including operational and in-development systems; perform detailed failure analysis and share learnings with hardware/software engineering teams.\n- Collaborate closely with multidisciplinary engineers on prototype design, assembly, and bring-up, especially high-density electromechanical integrations.\n- Create, maintain, and execute clear test procedures, troubleshooting guides, and repair runbooks for the prototyping lab to ensure high standards and rapid iteration cycles.\n- Design, document, and iterate on cable assemblies, test jigs, and harnesses optimized for repeated use on dynamic robotic platforms.\n- Identify and own opportunities for continuous process and product improvement—minimizing downtime and improving test/repair efficiency.\n- Contribute to robust feedback loops across design, build, and test, driving first-pass yield and manufacturability.\n\nWe’re Looking For\n\n- Demonstrated experience in rapid physical prototyping, hands-on debug of custom hardware, and troubleshooting complex electrical systems in robotics or similar domains.\n- Working knowledge of low-voltage and mixed-signal circuits, connectors, sensors, and compact electromechanical systems.\n- Track record communicating concisely via documentation—procedures, test plans, diagnostics, and lessons learned.\n- Adept collaborating across mechanical, electrical, and software engineering boundaries to solve urgent, ambiguous issues.\n- Comfortable in a high-velocity, high-ambiguity startup setting where priorities shift fast.\n- Experience designing for manufacturability and reliability in the context of human-sized or mobile robotics is a plus.\n- Familiarity with automated test and diagnostic tools used in modern hardware labs.\n\nWhat We Offer\n\n- Competitive salary plus participation in our Stock Option Plan\n- Paid vacation\n- Comprehensive health insurance coverage\n- Office perks: lunches, snacks, and regular team events\n- Travel opportunities to our London and Vancouver offices\n- Freedom to influence the product and own key initiatives\n- Collaboration with top‑tier engineers, researchers, and product experts in AI and robotics\n- Startup culture prioritizing speed, transparency, and minimal bureaucracy\nHow to Apply\n\nDoes this role sound like the perfect fit for you?\n\nFill in the form and include links or files that showcase the best of what you’ve built and achieved."
+}
+```
+</result>
+WARNING  [bubus] ⚠️ EventBus_467ba91e🟢(⏳ 0 | ▶️ 2 | ✅ 28 ➡️ 31 👂) handler browser_use.browser.watchdog_base.DOMWatchdog.on_BrowserStateRequestEvent() has been running for >15s on event. Possible slow processing or deadlock.
+(handler could be trying to await its own result or could be blocked by another async task).
+browser_use.browser.watchdog_base.DOMWatchdog.on_BrowserStateRequestEvent(?▶ BrowserStateRequestEvent#8878 🏃)
+WARNING  [bubus] ⚠️ EventBus_467ba91e🟢(⏳ 0 | ▶️ 2 | ✅ 28 ➡️ 31 👂) handler browser_use.browser.watchdog_base.ScreenshotWatchdog.on_ScreenshotEvent() has been running for >15s on event. Possible slow processing or deadlock.
+(handler could be trying to await its own result or could be blocked by another async task).
+browser_use.browser.watchdog_base.ScreenshotWatchdog.on_ScreenshotEvent(?▶ ScreenshotEvent#2927 🏃)
+WARNING  [bubus] ================================================================================
+WARNING  [bubus] ⏱️  TIMEOUT ERROR - Handling took more than 15.0s for EventBus_467ba91e.browser_use.browser.watchdog_base.ScreenshotWatchdog.on_ScreenshotEvent(?▶ ScreenshotEvent#2927 ✅)
+WARNING  [bubus] ================================================================================
+WARNING  [bubus] 📣 BrowserStateRequestEvent#8878                                       [93m15s[0m
+WARNING  [bubus]    ☑️ browser_use.browser.watchdog_base.DownloadsWatchdog.on_BrowserStateRequestEvent(#8878)    [92m 0s[0m/30s   ✓
+WARNING  [bubus]       📣 NavigationCompleteEvent#f983                                  [93m15s[0m
+WARNING  [bubus]          ☑️ browser_use.browser.watchdog_base.DownloadsWatchdog.on_NavigationCompleteEvent(#f983)    [92m 0s[0m/30s   ✓
+WARNING  [bubus]          ☑️ browser_use.browser.watchdog_base.SecurityWatchdog.on_NavigationCompleteEvent(#f983)    [92m 0s[0m/30s   ✓
+WARNING  [bubus]    ➡️ browser_use.browser.watchdog_base.DOMWatchdog.on_BrowserStateRequestEvent(#8878) ⏳ [93m15s[0m/30s  
+WARNING  [bubus]       📣 ScreenshotEvent#2927                                          [91m15s[0m
+WARNING  [bubus]          ⏰ browser_use.browser.watchdog_base.ScreenshotWatchdog.on_ScreenshotEvent(#2927) ⌛️ [91m15s[0m/[91m15s[0m   ⬅️ [91mTIMEOUT HERE[0m ⏰
+WARNING  [bubus] 
+================================================================================
+
+WARNING  [BrowserSession] 📸 Clean screenshot timed out after 6 seconds - no handler registered or slow page?
+ERROR    [BrowserSession] Exception in background task [capture_screenshot]: TimeoutError: Event handler browser_use.browser.watchdog_base.ScreenshotWatchdog.on_ScreenshotEvent#2464(?▶ ScreenshotEvent#2927 🏃) timed out after 15.0s
+Traceback (most recent call last):
+  File "/Users/felixhyy/.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/tasks.py", line 520, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/browser_use/browser/watchdog_base.py", line 153, in unique_handler
+    result = await actual_handler(event)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/browser_use/observability.py", line 73, in async_wrapper
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/browser_use/browser/watchdogs/screenshot_watchdog.py", line 78, in on_ScreenshotEvent
+    result = await cdp_session.cdp_client.send.Page.captureScreenshot(params=params, session_id=cdp_session.session_id)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/.venv/lib/python3.12/site-packages/cdp_use/cdp/page/library.py", line 137, in captureScreenshot
+    await self._client.send_raw(
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/.venv/lib/python3.12/site-packages/cdp_use/client.py", line 389, in send_raw
+    return await future
+           ^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/.venv/lib/python3.12/site-packages/bubus/service.py", line 1128, in execute_handler
+    result_value: Any = await asyncio.wait_for(handler_task, timeout=event_result.timeout)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/felixhyy/.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/tasks.py", line 519, in wait_for
+    async with timeouts.timeout(timeout):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/felixhyy/.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/timeouts.py", line 115, in __aexit__
+    raise TimeoutError from exc_val
+TimeoutError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/browser_use/utils.py", line 384, in wrapper
+    result = await func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/browser_use/observability.py", line 73, in async_wrapper
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/browser_use/browser/watchdogs/dom_watchdog.py", line 696, in _capture_clean_screenshot
+    screenshot_b64 = await screenshot_event.event_result(raise_if_any=True, raise_if_none=True)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/.venv/lib/python3.12/site-packages/bubus/models.py", line 574, in event_result
+    valid_results = await self.event_results_filtered(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/.venv/lib/python3.12/site-packages/bubus/models.py", line 516, in event_results_filtered
+    raise original_error
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/.venv/lib/python3.12/site-packages/bubus/models.py", line 490, in event_results_filtered
+    await event_result
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/.venv/lib/python3.12/site-packages/bubus/models.py", line 889, in wait_for_handler_to_complete_and_return_result
+    raise self.error if isinstance(self.error, BaseException) else Exception(self.error)  # pyright: ignore[reportUnnecessaryIsInstance]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/.venv/lib/python3.12/site-packages/bubus/service.py", line 1070, in _execute_handlers
+    await self.execute_handler(event, handler, timeout=timeout)
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/.venv/lib/python3.12/site-packages/bubus/service.py", line 1194, in execute_handler
+    raise handler_timeout_error from e
+TimeoutError: Event handler browser_use.browser.watchdog_base.ScreenshotWatchdog.on_ScreenshotEvent#2464(?▶ ScreenshotEvent#2927 🏃) timed out after 15.0s
+WARNING  [BrowserSession] 🔍 DOMWatchdog.on_BrowserStateRequestEvent: Clean screenshot failed: Event handler browser_use.browser.watchdog_base.ScreenshotWatchdog.on_ScreenshotEvent#2464(?▶ ScreenshotEvent#2927 🏃) timed out after 15.0s
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 5:
+INFO     [Agent]   [32m👍 Eval: Successfully extracted the information from the page. Verdict: Success[0m
+INFO     [Agent]   🧠 Memory: Extracted the job details from the page.
+INFO     [Agent]   [34m🎯 Next goal: Call the done action with the extracted information.[0m
+INFO     [Agent]   ▶️   [34mdone[0m: [35mtext[0m: {
+"role_title": "Senior Robotics Prototype Engineer",
+"company_name": "Humanoid",
+"salary": "Competitive salary plus participation in our Stock Option..., [35msuccess[0m: True, [35mfiles_to_display[0m: None
+INFO     [Agent] 📋 Plan updated with 0 steps
+INFO     [Agent] 
+📄 [32m Final Result:[0m 
+{
+"role_title": "Senior Robotics Prototype Engineer",
+"company_name": "Humanoid",
+"salary": "Competitive salary plus participation in our Stock Option Plan",
+"location": "Greater Boston",
+"job_description": "Humanoid is the first AI and robotics company in the UK, creating the world’s most advanced, reliable, commercially scalable, and safe humanoid robots. Our first humanoid robot HMND 01 is a next-gen labour automation unit, providing highly efficient services across various use cases, starting with industrial applications.\n\nOur Mission\n\nAt Humanoid we strive to create the world’s leading, commercially scalable, safe, and advanced humanoid robots that seamlessly integrate into daily life and amplify human capacity.\n\nWhat You’ll Do\n\n- Lead troubleshooting and resolution of complex electrical issues in prototype humanoid robots, including operational and in-development systems; perform detailed failure analysis and share learnings with hardware/software engineering teams.\n- Collaborate closely with multidisciplinary engineers on prototype design, assembly, and bring-up, especially high-density electromechanical integrations.\n- Create, maintain, and execute clear test procedures, troubleshooting guides, and repair runbooks for the prototyping lab to ensure high standards and rapid iteration cycles.\n- Design, document, and iterate on cable assemblies, test jigs, and harnesses optimized for repeated use on dynamic robotic platforms.\n- Identify and own opportunities for continuous process and product improvement—minimizing downtime and improving test/repair efficiency.\n- Contribute to robust feedback loops across design, build, and test, driving first-pass yield and manufacturability.\n\nWe’re Looking For\n\n- Demonstrated experience in rapid physical prototyping, hands-on debug of custom hardware, and troubleshooting complex electrical systems in robotics or similar domains.\n- Working knowledge of low-voltage and mixed-signal circuits, connectors, sensors, and compact electromechanical systems.\n- Track record communicating concisely via documentation—procedures, test plans, diagnostics, and lessons learned.\n- Adept collaborating across mechanical, electrical, and software engineering boundaries to solve urgent, ambiguous issues.\n- Comfortable in a high-velocity, high-ambiguity startup setting where priorities shift fast.\n- Experience designing for manufacturability and reliability in the context of human-sized or mobile robotics is a plus.\n- Familiarity with automated test and diagnostic tools used in modern hardware labs.\n\nWhat We Offer\n\n- Competitive salary plus participation in our Stock Option Plan\n- Paid vacation\n- Comprehensive health insurance coverage\n- Office perks: lunches, snacks, and regular team events\n- Travel opportunities to our London and Vancouver offices\n- Freedom to influence the product and own key initiatives\n- Collaboration with top‑tier engineers, researchers, and product experts in AI and robotics\n- Startup culture prioritizing speed, transparency, and minimal bureaucracy\nHow to Apply\n\nDoes this role sound like the perfect fit for you?\n\nFill in the form and include links or files that showcase the best of what you’ve built and achieved."
+}
+
+
+INFO     [Agent] ✅ Task completed successfully
+WARNING  [BrowserSession] 🔌 CDP WebSocket message handler exited unexpectedly (connection closed)
+WARNING  [BrowserSession] 🔄 WebSocket reconnection attempt 1/3...
+an error occurred during closing of asynchronous generator <async_generator object Connection.send_context at 0x11467f120>
+asyncgen: <async_generator object Connection.send_context at 0x11467f120>
+RuntimeError: aclose(): asynchronous generator is already running
+Extracting job data from: https://www.linkedin.com/jobs/collections/top-applicant/?currentJobId=4382353070
+CDP mode: connecting to http://localhost:9222
+Using LLM: Google AI gemini-2.0-flash
+Connecting to existing browser at: http://localhost:9222
+Extraction complete: /Volumes/Hyy Mac mini HD/Program Data/GitHub/Job_Queue/jobs/b28f6dd22427/input/job.json
+Task was destroyed but it is pending!
+task: <Task pending name='Task-2918' coro=<BrowserSession._auto_reconnect() done, defined at /Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/browser_use/browser/session.py:2090> wait_for=<Future pending cb=[shield.<locals>._outer_done_callback() at /Users/felixhyy/.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/tasks.py:922, Task.task_wakeup()]>>

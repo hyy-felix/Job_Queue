@@ -1,0 +1,23 @@
+All files present. Here's the final package summary:
+
+**Terranova — Robotics Controls Engineer**
+
+| File | Status |
+|------|--------|
+| resume.pdf | 1 page |
+| cover_letter.pdf | 1 page |
+| note/resume.tex | Final |
+| note/cover_letter.tex | Final |
+| note/selection_log.json | Updated with trim history |
+| note/compile.log | Saved |
+| note/job_description.txt | Saved |
+| note/notes.md | Saved |
+| note/company_research.md | Saved |
+
+**Resume:** 4 projects, 12 bullets. Strong match on classical controls (PID/MPC, ROS2), embedded systems (STM32, CAN, UART/DMA), and PCB design (KiCad). One bullet trimmed (Xiaoxian-7) for page fit.
+
+**Cover letter:** 3 distinct themes — real-time controller development, embedded hardware depth, maker/builder culture fit. ML/RL gap addressed honestly in the closing paragraph.
+
+**Key gaps flagged:** No ML/RL, PyTorch/JAX, EKF/UKF, or ONNX/TensorRT experience in the database. The classical controls and embedded side is a strong match.
+
+OUTPUT_PATH: /Users/felixhyy/Desktop/work/applications/03262026/Terranova_Robotics_Controls_Engineer/

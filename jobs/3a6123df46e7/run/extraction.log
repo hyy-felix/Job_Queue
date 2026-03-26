@@ -1,0 +1,147 @@
+warning: The `tool.uv.dev-dependencies` field (used in `/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/pyproject.toml`) is deprecated and will be removed in a future release; use `dependency-groups.dev` instead
+INFO     [service] Using anonymized telemetry, see https://docs.browser-use.com/development/monitoring/telemetry.
+INFO     [Agent] 🔗 Found URL in task: https://www.linkedin.com/jobs/collections/top-applicant/?currentJobId=4373844799, adding as initial action...
+INFO     [Agent] [34m🎯 Task: 
+    Go to this URL: https://www.linkedin.com/jobs/collections/top-applicant/?currentJobId=4373844799
+
+    IMPORTANT: You MUST read the entire page content carefully before responding.
+    Do NOT return null values without first scrolling through and reading the page.
+
+    After reading the full page, extract these fields:
+    1. role_title: The exact job title shown on the page
+    2. company_name: The company name
+    3. salary: Salary or compensation info (null ONLY if truly not listed anywhere)
+    4. location: Job location (city, state, remote, etc.)
+    5. job_description: Copy the COMPLETE job description text from the page.
+       Include ALL sections: overview, responsibilities, requirements,
+       qualifications, benefits. This must be comprehensive — multiple paragraphs.
+       Do NOT summarize. Copy the actual text from the page.
+
+    If the page shows a 404 error or the job posting is not found, set
+    job_description to a message explaining the page was not found.
+
+    Return ONLY a valid JSON object with these exact keys:
+    role_title, company_name, salary, location, job_description
+
+    No markdown formatting. No explanation. Just the JSON.
+    [0m
+INFO     [Agent] 📦 Newer version available: 0.12.5 (current: 0.12.3). Upgrade with: uv add browser-use==0.12.5
+INFO     [Agent] Starting a browser-use agent with version 0.12.3, with provider=google and model=gemini-2.0-flash
+INFO     [Agent]   ▶️   [34mnavigate[0m: [35murl[0m: https://www.linkedin.com/jobs/collections/top-applicant/?currentJobId=4373844799, [35mnew_tab[0m: False
+WARNING  [BrowserSession] ⚠️ Page readiness timeout (8.0s, 9692ms) for https://www.linkedin.com/jobs/collections/top-applicant/?currentJobId=4373844799
+INFO     [tools] 🔗 Navigated to https://www.linkedin.com/jobs/collections/top-applicant/?currentJobId=4373844799
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 1:
+INFO     [Agent]   [31m⚠️ Eval: Navigated to the URL but was redirected to the login page. Verdict: Failure[0m
+INFO     [Agent]   🧠 Memory: I was redirected to the login page. I need to find the job posting elsewhere since I don't have login credentials.
+INFO     [Agent]   [34m🎯 Next goal: Search for the job posting on Google to find an alternative source.[0m
+INFO     [Agent]   ▶️   [34msearch[0m: [35mquery[0m: linkedin job posting top applicant 4373844799, [35mengine[0m: google
+WARNING  [BrowserSession] [SessionManager] Agent focus target F4AD5D09... detached! Current focus: None (already cleared). Auto-recovering by switching to another target...
+WARNING  [BrowserSession] [SessionManager] No tabs remain! Creating new tab for agent...
+INFO     [BrowserSession] [SessionManager] Created new tab 5D4ADA84... for agent
+INFO     [BrowserSession] [SessionManager] ✅ Agent focus recovered: 5D4ADA84...
+WARNING  [BrowserSession] ⚠️ Page readiness timeout (8.0s, 8350ms) for https://www.google.com/search?q=linkedin+job+posting+top+applicant+4373844799&udm=14
+WARNING  [BrowserSession] [SessionManager] Agent focus target 5D4ADA84... detached! Current focus: None (already cleared). Auto-recovering by switching to another target...
+WARNING  [BrowserSession] [SessionManager] No tabs remain! Creating new tab for agent...
+INFO     [BrowserSession] [SessionManager] Created new tab 5B1C1B49... for agent
+INFO     [BrowserSession] [SessionManager] ✅ Agent focus recovered: 5B1C1B49...
+WARNING  [BrowserSession] [DownloadsWatchdog] No session found for F4AD5D09F347F117E551C09CD06AA3E1: Target F4AD5D09F347F117E551C09CD06AA3E1 not found - may have detached or never existed
+WARNING  [BrowserSession] [SessionManager] Agent focus target 5B1C1B49... detached! Current focus: None (already cleared). Auto-recovering by switching to another target...
+WARNING  [BrowserSession] [SessionManager] No tabs remain! Creating new tab for agent...
+INFO     [BrowserSession] [SessionManager] Created new tab D905D3C2... for agent
+INFO     [BrowserSession] [SessionManager] ✅ Agent focus recovered: D905D3C2...
+ERROR    [BrowserSession] 🚌 [BrowserSession.on_AgentFocusChangedEvent(#8361)]      ❌ Failed (2.02s): ValueError: Target F4AD5D09F347F117E551C09CD06AA3E1 not found - may have detached or never existed
+ERROR    [bubus] ❌ EventBus_d3875331🟢(⏳ 4 | ▶️ 2 | ✅ 25 ➡️ 31 👂) Error in event handler browser_use.browser.watchdog_base.BrowserSession.on_AgentFocusChangedEvent(?▶ AgentFocusChangedEvent#8361 🏃) -> 
+[91mValueError(Target F4AD5D09F347F117E551C09CD06AA3E1 not found - may have detached or never existed)[0m
+Traceback (most recent call last):
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/browser_use/browser/watchdog_base.py", line 153, in unique_handler
+    result = await actual_handler(event)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/browser_use/browser/session.py", line 1157, in on_AgentFocusChangedEvent
+    await self.get_or_create_cdp_session(target_id=event.target_id, focus=True)
+  File "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/browser_use/browser/session.py", line 1419, in get_or_create_cdp_session
+    raise ValueError(f'Target {target_id} not found - may have detached or never existed')
+ValueError: Target F4AD5D09F347F117E551C09CD06AA3E1 not found - may have detached or never existed
+
+INFO     [tools] 🔍  Searched Google for 'linkedin job posting top applicant 4373844799'
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 2:
+INFO     [Agent]   [32m👍 Eval: Successfully searched Google for the job posting. Verdict: Success[0m
+INFO     [Agent]   🧠 Memory: Redirected to login page on LinkedIn. Searched Google for the job posting. Need to find an alternative source from the search results.
+INFO     [Agent]   [34m🎯 Next goal: Navigate to the Google search results page.[0m
+INFO     [Agent]   ▶️   [34mnavigate[0m: [35murl[0m: https://www.google.com/search?q=linkedin+job+posting+top+applicant+4373844799, [35mnew_tab[0m: False
+INFO     [tools] 🔗 Navigated to https://www.google.com/search?q=linkedin+job+posting+top+applicant+4373844799
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 3:
+INFO     [Agent]   [32m👍 Eval: Successfully navigated to the Google search results page. Verdict: Success[0m
+INFO     [Agent]   🧠 Memory: Redirected to login page on LinkedIn. Searched Google for the job posting. Need to find an alternative source from the search results. Avoiding LinkedIn links.
+INFO     [Agent]   [34m🎯 Next goal: Scroll down the Google search results page to find a job posting from a source other than LinkedIn.[0m
+INFO     [Agent]   ▶️   [34mscroll[0m: [35mdown[0m: True, [35mpages[0m: 2.0, [35mindex[0m: None
+INFO     [tools] 🔍 Scrolled down 2.0 pages
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 4:
+INFO     [Agent]   [32m👍 Eval: Successfully scrolled down the Google search results page. Verdict: Success[0m
+INFO     [Agent]   🧠 Memory: Redirected to login page on LinkedIn. Searched Google for the job posting. Need to find an alternative source from the search results. Avoiding LinkedIn links. Scrolled down the Google search results page.
+INFO     [Agent]   [34m🎯 Next goal: Scroll down the Google search results page to find a job posting from a source other than LinkedIn.[0m
+INFO     [Agent]   ▶️   [34mscroll[0m: [35mdown[0m: True, [35mpages[0m: 2.0, [35mindex[0m: None
+INFO     [tools] 🔍 Scrolled down 2.0 pages
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 5:
+INFO     [Agent] 📋 Exploration nudge injected after 5 steps without a plan
+INFO     [Agent]   [32m👍 Eval: Successfully scrolled down the Google search results page. Verdict: Success[0m
+INFO     [Agent]   🧠 Memory: Redirected to login page on LinkedIn. Searched Google for the job posting. Need to find an alternative source from the search results. Avoiding LinkedIn links. Scrolled down the Google search results page twice.
+INFO     [Agent]   [34m🎯 Next goal: Scroll down the Google search results page to find a job posting from a source other than LinkedIn.[0m
+INFO     [Agent]   ▶️   [34mscroll[0m: [35mdown[0m: True, [35mpages[0m: 2.0, [35mindex[0m: None
+INFO     [tools] 🔍 Scrolled down 2.0 pages
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 6:
+INFO     [Agent] 📋 Exploration nudge injected after 6 steps without a plan
+INFO     [Agent]   [32m👍 Eval: Successfully scrolled down the Google search results page. Verdict: Success[0m
+INFO     [Agent]   🧠 Memory: Redirected to login page on LinkedIn. Searched Google for the job posting. Need to find an alternative source from the search results. Avoiding LinkedIn links. Scrolled down the Google search results page three times without success. Switching to DuckDuckGo search engine.
+INFO     [Agent]   [34m🎯 Next goal: Search for the job posting on DuckDuckGo to find an alternative source.[0m
+INFO     [Agent]   ▶️   [34msearch[0m: [35mquery[0m: linkedin job posting top applicant 4373844799, [35mengine[0m: duckduckgo
+INFO     [tools] 🔍  Searched Duckduckgo for 'linkedin job posting top applicant 4373844799'
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 7:
+INFO     [Agent] 📋 Exploration nudge injected after 7 steps without a plan
+INFO     [Agent]   [32m👍 Eval: Successfully searched DuckDuckGo for the job posting. Verdict: Success[0m
+INFO     [Agent]   🧠 Memory: Redirected to login page on LinkedIn. Searched Google and DuckDuckGo for the job posting. Need to find an alternative source from the search results. Avoiding LinkedIn links. Scrolled down the Google search results page three times without success. Now on DuckDuckGo search results page.
+INFO     [Agent]   [34m🎯 Next goal: Click on the first non-LinkedIn job posting link on the DuckDuckGo search results page.[0m
+INFO     [Agent]   ▶️   [34mclick[0m: [35mindex[0m: 184
+INFO     [tools] 🖱️ Clicked a "Jobs Hiring Right Now - Indeed..."
+WARNING  [cdp_use.client] Received duplicate response for request 1071 - ignoring
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 8:
+INFO     [Agent] 📋 Exploration nudge injected after 8 steps without a plan
+INFO     [Agent]   [31m⚠️ Eval: Clicked on the first non-LinkedIn job posting link on the DuckDuckGo search results page, but it led to an empty Indeed page. Verdict: Failure[0m
+INFO     [Agent]   🧠 Memory: Redirected to login page on LinkedIn. Searched Google and DuckDuckGo for the job posting. Need to find an alternative source from the search results. Avoiding LinkedIn links. Scrolled down the Google search results page three times without success. Clicked on a link from DuckDuckGo, but it led to an empty Indeed page.
+INFO     [Agent]   [34m🎯 Next goal: Call done and explain that I was unable to find the job posting due to being redirected to a login page on LinkedIn and not finding an alternative source.[0m
+INFO     [Agent]   ▶️   [34mdone[0m: [35mtext[0m: I was unable to find the job posting at the provided URL because I was redirected to a login page on LinkedIn. I attempted to find the job posting thr..., [35msuccess[0m: False, [35mfiles_to_display[0m: None
+INFO     [Agent] 
+📄 [31m Final Result:[0m 
+I was unable to find the job posting at the provided URL because I was redirected to a login page on LinkedIn. I attempted to find the job posting through Google and DuckDuckGo searches, but the alternative links led to empty pages or were not the correct job posting. Therefore, I cannot fulfill the request to extract the job details.
+
+
+INFO     [Agent] 
+⚖️  [31mJudge Verdict: ❌ FAIL[0m
+   Failure Reason: The agent was unable to access the job posting due to being redirected to a login page on LinkedIn. Attempts to find the job posting through search engines were unsuccessful.
+   The agent was redirected to a login page on LinkedIn, preventing it from accessing the job posting. It attempted to find the job posting through Google and DuckDuckGo searches, but the alternative links led to empty pages or were not the correct job posting. Therefore, it could not fulfill the request to extract the job details.
+
+INFO     [Agent] 
+INFO     [Agent] Did the Agent not work as expected? Let us fix this!
+INFO     [Agent]    Open a short issue on GitHub: https://github.com/browser-use/browser-use/issues
+INFO     [BrowserSession] 📢 on_BrowserStopEvent - Calling reset() (force=True, keep_alive=None)
+INFO     [BrowserSession] [SessionManager] Cleared all owned data (targets, sessions, mappings)
+INFO     [BrowserSession] ✅ Browser session reset complete
+INFO     [BrowserSession] ✅ Browser session reset complete
+Extracting job data from: https://www.linkedin.com/jobs/collections/top-applicant/?currentJobId=4373844799
+Using LLM: Google AI gemini-2.0-flash
+Extraction complete: /Volumes/Hyy Mac mini HD/Program Data/GitHub/Job_Queue/jobs/3a6123df46e7/input/job.json

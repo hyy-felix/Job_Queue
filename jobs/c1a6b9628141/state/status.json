@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "job_id": "c1a6b9628141",
+  "source_url": "http://127.0.0.1:8080",
+  "status": "cancelled",
+  "created_at": "2026-03-26T04:56:18.763527Z",
+  "updated_at": "2026-03-26T05:36:06.739636Z",
+  "version": 6,
+  "extraction": {
+    "role_title": null,
+    "company_name": null,
+    "salary": null,
+    "location": null,
+    "job_description": "The page at http://127.0.0.1:8080 was not found or is not loading correctly.",
+    "scraped_at": "2026-03-26T04:58:05.132939Z"
+  },
+  "generation": {
+    "output_folder": null,
+    "completed_at": null
+  },
+  "apply": {
+    "screenshot_path": null,
+    "result_path": null,
+    "form_filled": false,
+    "resume_uploaded": false,
+    "applied_at": null,
+    "fields_filled": []
+  },
+  "error": {
+    "last_error": null,
+    "retry_count": 0
+  },
+  "worker": {
+    "pid": null,
+    "pgid": null
+  }
+}

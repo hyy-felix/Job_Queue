@@ -1,0 +1,93 @@
+warning: The `tool.uv.dev-dependencies` field (used in `/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/pyproject.toml`) is deprecated and will be removed in a future release; use `dependency-groups.dev` instead
+INFO     [service] Using anonymized telemetry, see https://docs.browser-use.com/development/monitoring/telemetry.
+INFO     [Agent] 🔗 Found URL in task: https://www.linkedin.com/jobs/collections/top-applicant/?currentJobId=4343593147, adding as initial action...
+INFO     [Agent] [34m🎯 Task: 
+    Go to this URL: https://www.linkedin.com/jobs/collections/top-applicant/?currentJobId=4343593147
+
+    IMPORTANT: You MUST read the entire page content carefully before responding.
+    Do NOT return null values without first scrolling through and reading the page.
+
+    After reading the full page, extract these fields:
+    1. role_title: The exact job title shown on the page
+    2. company_name: The company name
+    3. salary: Salary or compensation info (null ONLY if truly not listed anywhere)
+    4. location: Job location (city, state, remote, etc.)
+    5. job_description: Copy the COMPLETE job description text from the page.
+       Include ALL sections: overview, responsibilities, requirements,
+       qualifications, benefits. This must be comprehensive — multiple paragraphs.
+       Do NOT summarize. Copy the actual text from the page.
+
+    If the page shows a 404 error or the job posting is not found, set
+    job_description to a message explaining the page was not found.
+
+    Return ONLY a valid JSON object with these exact keys:
+    role_title, company_name, salary, location, job_description
+
+    No markdown formatting. No explanation. Just the JSON.
+    [0m
+INFO     [Agent] 📦 Newer version available: 0.12.5 (current: 0.12.3). Upgrade with: uv add browser-use==0.12.5
+INFO     [Agent] Starting a browser-use agent with version 0.12.3, with provider=google and model=gemini-2.0-flash
+INFO     [Agent]   ▶️   [34mnavigate[0m: [35murl[0m: https://www.linkedin.com/jobs/collections/top-applicant/?currentJobId=4343593147, [35mnew_tab[0m: False
+ERROR    [BrowserSession] ❌ No lifecycle events received for https://www.linkedin.com/jobs/collections/top-applicant/?currentJobId=4343593147 after 8385ms! Monitoring may have failed. Target: ADA76360
+INFO     [tools] 🔗 Navigated to https://www.linkedin.com/jobs/collections/top-applicant/?currentJobId=4343593147
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 1:
+INFO     [Agent]   [32m👍 Eval: Successfully navigated to the URL. Verdict: Success[0m
+INFO     [Agent]   🧠 Memory: Navigated to the LinkedIn job posting. Need to scroll down and extract the job details.
+INFO     [Agent]   [34m🎯 Next goal: Scroll down to the bottom of the page to ensure all content is loaded, then extract the job details.[0m
+INFO     [Agent]   ▶️   [34mscroll[0m: [35mdown[0m: True, [35mpages[0m: 10.0, [35mindex[0m: None
+INFO     [tools] 🔍 Scrolled down 10.0 pages
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 2:
+INFO     [Agent]   [32m👍 Eval: Successfully scrolled down the page. Verdict: Success[0m
+INFO     [Agent]   🧠 Memory: Scrolled down the page to load more job postings. Ready to extract the job details for the first job posting.
+INFO     [Agent]   [34m🎯 Next goal: Click on the first job posting to view the job details.[0m
+INFO     [Agent]   ▶️   [34mclick[0m: [35mindex[0m: 250
+INFO     [tools] 🖱️ Clicked a "Robotics Controls Engineer" id=ember223
+INFO     [Agent] 📋 Plan updated with 0 steps
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 3:
+INFO     [Agent]   [32m👍 Eval: Successfully clicked on the first job posting. Verdict: Success[0m
+INFO     [Agent]   🧠 Memory: Navigated to the job posting and ready to extract the required information.
+INFO     [Agent]   [34m🎯 Next goal: Extract the job details from the current page and return the information in JSON format.[0m
+INFO     [Agent]   ▶️   [34mdone[0m: [35mtext[0m: {
+  "role_title": "Robotics Controls Engineer",
+  "company_name": "Terranova",
+  "salary": null,
+  "location": "Berkeley, CA",
+  "job_description": "C..., [35msuccess[0m: True, [35mfiles_to_display[0m: None
+INFO     [Agent] 📋 Plan updated with 0 steps
+INFO     [Agent] 
+📄 [32m Final Result:[0m 
+{
+  "role_title": "Robotics Controls Engineer",
+  "company_name": "Terranova",
+  "salary": null,
+  "location": "Berkeley, CA",
+  "job_description": "Company Description\nBacked by leading climate and American dynamism investors, Terranova builds intelligent robotic systems to terraform the Earth itself - lifting land, restoring wetlands, and protecting critical infrastructure from floods and sea-level rise.\nOur mission is to preserve the built environment, create new habitats, and usher in an era of abundance. Our work supports climate resilience, disaster recovery, and defense across the United States and beyond.\nWe’re assembling a world-class team that wants to work on something real, physical, and civilization-scale. If you want your work to reshape the world (literally), this is the place to do it.\nWhat To To Expect\nWe’re seeking a robot controls and machine learning specialist to develop algorithms that give our robotic systems adaptive, intelligent behavior. You’ll design and tune controllers, build dynamic models, and integrate them with perception and sensor data. This is a chance to bridge classical control with modern machine learning to shape how machines move through the Earth.\nKey Responsibilities\nDevelop and tune controllers (PID, MPC, optimal/robust control) for dynamic, nonlinear systems.\nBuild and validate physical models for simulation, hardware-in-the-loop testing, and autonomy.\nTrain and deploy ML models for perception, planning, or adaptive control (supervised or RL).\nIntegrate algorithms with firmware and cloud teams, ensuring real-time safety and stability.\nProfile, optimize, and verify performance under latency, jitter, and compute constraints\nComfortable with the pace and intensity of early-stage startup life, including long days, 6-day workweeks, and extended field hours\nBachelor’s degree or higher in Computer Science or related field\nU.S. permanent residency required\nPreferred Skills And Experience\nPython/C++ with PyTorch/JAX\nMPC/OSQP/CasADi\nEKF/UKF/factor graphs\nSystem ID, RL (PPO/SAC) with safety shields\nROS2, ONNX/TensorRT\nLatency and jitter profiling\nPCB and embedded systems design skills are a huge bonus\nIdeal Archetype\nHave worked on large complex robotic systems - various sensors, multiple motors/robots, reinforcement learning based on robot data\nMaker background - love building stuff, work is fun to you\nComing from a startup environment - high ownership, fast paced environment"
+}
+
+
+INFO     [Agent] ✅ Task completed successfully
+WARNING  [BrowserSession] 🔌 CDP WebSocket message handler exited unexpectedly (connection closed)
+WARNING  [BrowserSession] 🔄 WebSocket reconnection attempt 1/3...
+an error occurred during closing of asynchronous generator <async_generator object Connection.send_context at 0x116613890>
+asyncgen: <async_generator object Connection.send_context at 0x116613890>
+RuntimeError: aclose(): asynchronous generator is already running
+INFO     [BrowserSession] [SessionManager] Cleared all owned data (targets, sessions, mappings)
+Extracting job data from: https://www.linkedin.com/jobs/collections/top-applicant/?currentJobId=4343593147
+CDP mode: connecting to http://localhost:9222
+Using LLM: Google AI gemini-2.0-flash
+Connecting to existing browser at: http://localhost:9222
+Extraction complete: /Volumes/Hyy Mac mini HD/Program Data/GitHub/Job_Queue/jobs/0076a1054540/input/job.json
+Task was destroyed but it is pending!
+task: <Task pending name='Task-1385' coro=<BrowserSession._auto_reconnect() done, defined at /Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/browser_use/browser/session.py:2090> wait_for=<Future finished exception=ConnectionRefusedError(61, "Connect call failed ('::1', 9222, 0, 0)")>>
+Future exception was never retrieved
+future: <Future finished exception=ConnectionRefusedError(61, "Connect call failed ('::1', 9222, 0, 0)")>
+Traceback (most recent call last):
+  File "/Users/felixhyy/.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/selector_events.py", line 691, in _sock_connect_cb
+    raise OSError(err, f'Connect call failed {address}')
+ConnectionRefusedError: [Errno 61] Connect call failed ('::1', 9222, 0, 0)

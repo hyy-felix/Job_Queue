@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Job_Queue</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; background: #f5f5f5; color: #222; }
+.container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+h1 { font-size: 20px; font-weight: 600; margin-bottom: 16px; }
+
+/* Status bar */
+.status-bar { display: flex; gap: 8px; margin-bottom: 16px; padding: 10px 14px; background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; flex-wrap: wrap; }
+.stat { text-align: center; flex: 1; min-width: 55px; }
+.stat-num { font-size: 20px; font-weight: 700; }
+.stat-label { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+.stat-num.active { color: #2563eb; }
+.stat-num.done { color: #16a34a; }
+.stat-num.fail { color: #dc2626; }
+
+/* Input */
+.input-section { background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; padding: 14px; margin-bottom: 16px; }
+.input-section h2 { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+textarea { width: 100%; height: 64px; border: 1px solid #ccc; border-radius: 4px; padding: 8px; font-size: 13px; font-family: monospace; resize: vertical; }
+.btn-row { display: flex; gap: 8px; margin-top: 6px; align-items: center; flex-wrap: wrap; }
+.btn { padding: 5px 14px; border: 1px solid #333; border-radius: 4px; background: #fff; font-size: 12px; cursor: pointer; }
+.btn:hover { background: #f0f0f0; }
+.btn-primary { background: #222; color: #fff; border-color: #222; }
+.btn-primary:hover { background: #444; }
+.btn-sm { padding: 3px 8px; font-size: 11px; }
+.btn-apply { background: #166534; color: #fff; border-color: #166534; font-size: 11px; padding: 3px 10px; }
+.btn-apply:hover { background: #15803d; }
+.btn-apply:disabled { background: #9ca3af; border-color: #9ca3af; cursor: not-allowed; }
+.hint { font-size: 11px; color: #888; }
+
+/* Queue */
+.queue-section { background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; margin-bottom: 16px; }
+.queue-header { padding: 10px 14px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+.queue-header h2 { font-size: 13px; font-weight: 600; }
+.job-row { padding: 8px 14px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; gap: 10px; cursor: pointer; }
+.job-row:last-child { border-bottom: none; }
+.job-row:hover { background: #fafafa; }
+.job-row.active { background: #eff6ff; }
+.job-row.selected { background: #f0f7ff; border-left: 3px solid #2563eb; }
+
+.badge { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px; text-transform: uppercase; letter-spacing: 0.3px; white-space: nowrap; }
+.badge-submitted { background: #f3f4f6; color: #6b7280; }
+.badge-extracting { background: #fef3c7; color: #92400e; }
+.badge-extraction_failed { background: #fee2e2; color: #991b1b; }
+.badge-ready_for_review { background: #ede9fe; color: #5b21b6; }
+.badge-queued { background: #f3f4f6; color: #6b7280; }
+.badge-generating { background: #dbeafe; color: #1e40af; }
+.badge-generation_failed { background: #fee2e2; color: #991b1b; }
+.badge-completed { background: #dcfce7; color: #166534; }
+.badge-cancelled { background: #f3f4f6; color: #9ca3af; }
+/* Apply-phase badges */
+.badge-apply_queued { background: #fef3c7; color: #92400e; }
+.badge-applying { background: #dbeafe; color: #1e40af; }
+.badge-applied { background: #dcfce7; color: #166534; }
+.badge-apply_failed { background: #fee2e2; color: #991b1b; }
+
+.job-info { flex: 1; min-width: 0; }
+.job-title { font-size: 13px; font-weight: 500; }
+.job-meta { font-size: 11px; color: #888; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.job-actions { display: flex; gap: 4px; align-items: center; }
+.url-link { font-size: 12px; color: #2563eb; text-decoration: none; padding: 2px 6px; white-space: nowrap; }
+.url-link:hover { text-decoration: underline; }
+
+/* Detail panel */
+.detail-panel { background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; padding: 14px; display: none; }
+.detail-panel.visible { display: block; }
+.detail-panel h2 { font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+.field-label { font-size: 10px; color: #888; text-transform: uppercase; margin-bottom: 2px; }
+.field-input { width: 100%; padding: 4px 8px; border: 1px solid #e0e0e0; border-radius: 3px; font-size: 13px; background: #fafafa; }
+.field-input:focus { outline: none; border-color: #2563eb; background: #fff; }
+.field-input[readonly] { background: #f5f5f5; color: #888; }
+.jd-area { width: 100%; height: 120px; border: 1px solid #e0e0e0; border-radius: 3px; padding: 8px; font-size: 12px; font-family: monospace; resize: vertical; }
+
+/* Tabs */
+.tabs { display: flex; border-bottom: 1px solid #e0e0e0; margin-top: 12px; margin-bottom: 8px; }
+.tab { padding: 5px 12px; font-size: 11px; border: none; background: none; cursor: pointer; color: #888; border-bottom: 2px solid transparent; }
+.tab.active { color: #222; border-bottom-color: #222; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.log-area { font-family: monospace; font-size: 11px; background: #1a1a2e; color: #ccc; padding: 10px; border-radius: 4px; max-height: 200px; overflow-y: auto; white-space: pre-wrap; word-break: break-all; }
+.output-file { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 12px; }
+.error-msg { color: #dc2626; font-size: 12px; margin-top: 6px; padding: 6px 8px; background: #fef2f2; border-radius: 4px; }
+.empty-state { text-align: center; padding: 40px 20px; color: #888; font-size: 13px; }
+
+/* Apply evidence */
+.apply-evidence { margin-top: 8px; padding: 8px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 4px; font-size: 12px; }
+.apply-evidence .ev-row { display: flex; gap: 8px; padding: 2px 0; }
+.apply-evidence .ev-label { font-weight: 600; min-width: 100px; color: #166534; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Job_Queue</h1>
+
+  <!-- Status bar -->
+  <div class="status-bar" id="status-bar"></div>
+
+  <!-- URL input -->
+  <div class="input-section">
+    <h2>Submit Job URLs</h2>
+    <textarea id="url-input" placeholder="Paste one or more job URLs, one per line..."></textarea>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="submitUrls()">Submit URLs</button>
+      <span class="hint">One URL per line. Duplicates in active jobs will be rejected.</span>
+    </div>
+  </div>
+
+  <!-- Queue -->
+  <div class="queue-section">
+    <div class="queue-header">
+      <h2>Queue</h2>
+      <span class="hint" id="queue-count"></span>
+    </div>
+    <div id="job-list"></div>
+  </div>
+
+  <!-- Detail panel -->
+  <div class="detail-panel" id="detail-panel">
+    <h2 id="detail-title">Job Detail</h2>
+    <div class="detail-grid">
+      <div><div class="field-label">Role Title</div><input class="field-input" id="d-role" /></div>
+      <div><div class="field-label">Company</div><input class="field-input" id="d-company" /></div>
+      <div><div class="field-label">Location</div><input class="field-input" id="d-location" /></div>
+      <div><div class="field-label">Salary</div><input class="field-input" id="d-salary" /></div>
+    </div>
+    <div class="field-label">Job Description</div>
+    <textarea class="jd-area" id="d-jd"></textarea>
+    <div class="btn-row" id="detail-actions" style="margin-top: 8px;"></div>
+    <div id="detail-error"></div>
+    <div id="apply-evidence-section"></div>
+
+    <div class="tabs" id="detail-tabs">
+      <button class="tab active" onclick="showTab('extraction')">Extraction Log</button>
+      <button class="tab" onclick="showTab('generation')">Generation Log</button>
+      <button class="tab" onclick="showTab('apply')">Apply Log</button>
+      <button class="tab" onclick="showTab('outputs')">Outputs</button>
+    </div>
+    <div class="tab-content active" id="tab-extraction"><div class="log-area" id="log-extraction"></div></div>
+    <div class="tab-content" id="tab-generation"><div class="log-area" id="log-generation"></div></div>
+    <div class="tab-content" id="tab-apply"><div class="log-area" id="log-apply"></div></div>
+    <div class="tab-content" id="tab-outputs"><div id="output-list"></div></div>
+  </div>
+</div>
+
+<script>
+let jobs = [];
+let selectedJobId = null;
+
+// ── API calls ────────────────────────────────────────────
+async function api(method, path, body) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(path, opts);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(err.detail || 'Request failed');
+  }
+  if (res.status === 204) return null;
+  return res.json();
+}
+
+async function loadJobs() {
+  const data = await api('GET', '/api/jobs');
+  jobs = data.jobs;
+  renderStatusBar(data.counts, data.total);
+  renderJobList();
+  if (selectedJobId) loadJobDetail(selectedJobId);
+}
+
+async function submitUrls() {
+  const text = document.getElementById('url-input').value.trim();
+  if (!text) return;
+  const urls = text.split('\n').map(u => u.trim()).filter(u => u);
+  if (!urls.length) return;
+  try {
+    const result = await api('POST', '/api/jobs', { urls });
+    document.getElementById('url-input').value = '';
+    await loadJobs();
+  } catch (e) { alert(e.message); }
+}
+
+async function loadJobDetail(jobId) {
+  selectedJobId = jobId;
+  const job = await api('GET', `/api/jobs/${jobId}`);
+  renderDetail(job);
+  document.getElementById('detail-panel').classList.add('visible');
+  // Load logs
+  try {
+    const el = await api('GET', `/api/jobs/${jobId}/logs/extraction`);
+    document.getElementById('log-extraction').textContent = el.log || '(no log)';
+  } catch(e) {}
+  try {
+    const gl = await api('GET', `/api/jobs/${jobId}/logs/generation`);
+    document.getElementById('log-generation').textContent = gl.log || '(no log)';
+  } catch(e) {}
+  try {
+    const al = await api('GET', `/api/jobs/${jobId}/logs/apply`);
+    document.getElementById('log-apply').textContent = al.log || '(no log)';
+  } catch(e) {}
+  // Load outputs
+  try {
+    const out = await api('GET', `/api/jobs/${jobId}/outputs`);
+    renderOutputs(out.files);
+  } catch(e) {}
+  // Highlight selected row
+  document.querySelectorAll('.job-row').forEach(r => r.classList.remove('selected'));
+  const row = document.querySelector(`[data-jobid="${jobId}"]`);
+  if (row) row.classList.add('selected');
+}
+
+// ── Rendering ────────────────────────────────────────────
+function renderStatusBar(counts, total) {
+  const bar = document.getElementById('status-bar');
+  const failCount = (counts.extraction_failed||0) + (counts.generation_failed||0) + (counts.apply_failed||0);
+  const stats = [
+    { label: 'Total', value: total, cls: '' },
+    { label: 'Queued', value: (counts.submitted||0) + (counts.queued||0), cls: '' },
+    { label: 'Extracting', value: counts.extracting||0, cls: 'active' },
+    { label: 'Generating', value: counts.generating||0, cls: 'active' },
+    { label: 'Review', value: counts.ready_for_review||0, cls: '' },
+    { label: 'Completed', value: counts.completed||0, cls: 'done' },
+    { label: 'Applying', value: (counts.apply_queued||0) + (counts.applying||0), cls: 'active' },
+    { label: 'Applied', value: counts.applied||0, cls: 'done' },
+    { label: 'Failed', value: failCount, cls: 'fail' },
+  ];
+  bar.innerHTML = stats.map(s =>
+    `<div class="stat"><div class="stat-num ${s.cls}">${s.value}</div><div class="stat-label">${s.label}</div></div>`
+  ).join('');
+}
+
+function renderJobList() {
+  const list = document.getElementById('job-list');
+  const count = document.getElementById('queue-count');
+  count.textContent = `${jobs.length} jobs`;
+  if (!jobs.length) {
+    list.innerHTML = '<div class="empty-state">No jobs yet. Paste URLs above to get started.</div>';
+    return;
+  }
+  list.innerHTML = jobs.map(j => {
+    const title = j.extraction?.role_title || '(untitled)';
+    const company = j.extraction?.company_name || '';
+    const loc = j.extraction?.location || '';
+    const meta = [company, loc].filter(Boolean).join(' \u2022 ') || j.source_url;
+    const isActive = ['extracting', 'generating', 'applying'].includes(j.status);
+    const canApply = ['completed', 'apply_failed'].includes(j.status);
+
+    let rowActions = '';
+    // Open URL link (always show if URL exists)
+    rowActions += `<a class="url-link" href="${esc(j.source_url)}" target="_blank" rel="noopener"
+                     onclick="event.stopPropagation()" title="Open job posting">\u2197</a>`;
+    // Apply button (only for completed or apply_failed)
+    if (canApply) {
+      rowActions += `<button class="btn-apply" onclick="event.stopPropagation(); applyJob('${j.job_id}', '${esc(title)}', '${esc(company)}')"
+                       aria-label="Auto-apply to ${esc(title)} at ${esc(company)}">Apply \u25b8</button>`;
+    }
+
+    return `<div class="job-row ${isActive ? 'active' : ''} ${j.job_id === selectedJobId ? 'selected' : ''}"
+                data-jobid="${j.job_id}" onclick="loadJobDetail('${j.job_id}')">
+      <span class="badge badge-${j.status}">${j.status.replace(/_/g, ' ')}</span>
+      <div class="job-info">
+        <div class="job-title">${esc(title)}</div>
+        <div class="job-meta">${esc(meta)}</div>
+      </div>
+      <div class="job-actions">${rowActions}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderDetail(job) {
+  const editable = ['ready_for_review', 'extraction_failed'].includes(job.status);
+  document.getElementById('detail-title').textContent =
+    `${job.extraction?.role_title || 'Job'} @ ${job.extraction?.company_name || 'Unknown'}`;
+
+  const fields = { 'd-role': 'role_title', 'd-company': 'company_name', 'd-location': 'location', 'd-salary': 'salary' };
+  for (const [id, key] of Object.entries(fields)) {
+    const el = document.getElementById(id);
+    el.value = job.extraction?.[key] || '';
+    el.readOnly = !editable;
+  }
+  const jd = document.getElementById('d-jd');
+  jd.value = job.extraction?.job_description || '';
+  jd.readOnly = !editable;
+
+  // Actions
+  const actions = document.getElementById('detail-actions');
+  let btns = '';
+  if (editable) {
+    btns += `<button class="btn btn-primary" onclick="approveJob('${job.job_id}')">Approve &amp; Queue</button>`;
+    btns += `<button class="btn" onclick="saveEdits('${job.job_id}')">Save Edits</button>`;
+  }
+  if (['extraction_failed', 'generation_failed', 'apply_failed'].includes(job.status)) {
+    btns += `<button class="btn" onclick="retryJob('${job.job_id}')">Retry</button>`;
+  }
+  const canCancel = !['completed', 'cancelled', 'applied'].includes(job.status);
+  if (canCancel) {
+    btns += `<button class="btn" onclick="cancelJob('${job.job_id}')">Cancel</button>`;
+  }
+  // Apply button in detail panel
+  if (['completed', 'apply_failed'].includes(job.status)) {
+    const role = job.extraction?.role_title || 'this job';
+    const comp = job.extraction?.company_name || 'Unknown';
+    btns += `<button class="btn btn-apply" onclick="applyJob('${job.job_id}', '${esc(role)}', '${esc(comp)}')">Auto-Apply \u25b8</button>`;
+  }
+  if (job.generation?.output_folder) {
+    btns += `<button class="btn" onclick="alert('Open in Finder: ${esc(job.generation.output_folder)}')">Open Output Folder</button>`;
+  }
+  // Open job posting link in detail
+  btns += `<a class="url-link" href="${esc(job.source_url)}" target="_blank" rel="noopener">\u2197 View Posting</a>`;
+
+  if (['completed', 'cancelled', 'applied', 'extraction_failed', 'generation_failed', 'apply_failed'].includes(job.status)) {
+    btns += `<button class="btn" style="color:#dc2626;border-color:#dc2626" onclick="deleteJob('${job.job_id}')">Delete</button>`;
+  }
+  actions.innerHTML = btns;
+
+  // Error
+  const errEl = document.getElementById('detail-error');
+  errEl.innerHTML = job.error?.last_error ? `<div class="error-msg">${esc(job.error.last_error)}</div>` : '';
+
+  // Apply evidence
+  const evSection = document.getElementById('apply-evidence-section');
+  if (job.apply && (job.apply.form_filled || job.apply.resume_uploaded || job.apply.applied_at)) {
+    let ev = '<div class="apply-evidence">';
+    ev += '<div class="ev-row"><span class="ev-label">Form filled:</span> ' + (job.apply.form_filled ? 'Yes' : 'No') + '</div>';
+    ev += '<div class="ev-row"><span class="ev-label">Resume uploaded:</span> ' + (job.apply.resume_uploaded ? 'Yes' : 'No') + '</div>';
+    if (job.apply.applied_at) {
+      ev += '<div class="ev-row"><span class="ev-label">Applied at:</span> ' + new Date(job.apply.applied_at).toLocaleString() + '</div>';
+    }
+    if (job.apply.fields_filled && job.apply.fields_filled.length) {
+      ev += '<div class="ev-row"><span class="ev-label">Fields filled:</span> ' + job.apply.fields_filled.join(', ') + '</div>';
+    }
+    ev += '</div>';
+    evSection.innerHTML = ev;
+  } else {
+    evSection.innerHTML = '';
+  }
+}
+
+function renderOutputs(files) {
+  const list = document.getElementById('output-list');
+  if (!files || !files.length) {
+    list.innerHTML = '<div class="hint" style="padding:8px">No output files yet.</div>';
+    return;
+  }
+  list.innerHTML = files.map(f =>
+    `<div class="output-file">
+      <span>${esc(f.name)}</span>
+      <span class="hint">(${(f.size/1024).toFixed(1)} KB)</span>
+    </div>`
+  ).join('');
+}
+
+// ── Actions ──────────────────────────────────────────────
+async function saveEdits(jobId) {
+  try {
+    await api('PUT', `/api/jobs/${jobId}`, {
+      role_title: document.getElementById('d-role').value,
+      company_name: document.getElementById('d-company').value,
+      location: document.getElementById('d-location').value,
+      salary: document.getElementById('d-salary').value,
+      job_description: document.getElementById('d-jd').value,
+    });
+    await loadJobs();
+  } catch(e) { alert(e.message); }
+}
+
+async function approveJob(jobId) {
+  try {
+    await api('POST', `/api/jobs/${jobId}/approve`);
+    await loadJobs();
+  } catch(e) { alert(e.message); }
+}
+
+async function retryJob(jobId) {
+  try {
+    await api('POST', `/api/jobs/${jobId}/retry`);
+    await loadJobs();
+  } catch(e) { alert(e.message); }
+}
+
+async function cancelJob(jobId) {
+  if (!confirm('Cancel this job?')) return;
+  try {
+    await api('POST', `/api/jobs/${jobId}/cancel`);
+    await loadJobs();
+  } catch(e) { alert(e.message); }
+}
+
+async function applyJob(jobId, role, company) {
+  if (!confirm(`Auto-apply to ${role} at ${company}?\n\nThis will open the job posting, fill application forms, and upload your resume. Continue?`)) return;
+  try {
+    await api('POST', `/api/jobs/${jobId}/apply`);
+    await loadJobs();
+  } catch(e) { alert(e.message); }
+}
+
+async function deleteJob(jobId) {
+  if (!confirm('Delete this job and all its files?')) return;
+  try {
+    await api('DELETE', `/api/jobs/${jobId}`);
+    selectedJobId = null;
+    document.getElementById('detail-panel').classList.remove('visible');
+    await loadJobs();
+  } catch(e) { alert(e.message); }
+}
+
+function esc(s) { if (!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+function showTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+// ── SSE with debounce ────────────────────────────────────
+let refreshTimer = null;
+function debouncedRefresh() {
+  if (refreshTimer) clearTimeout(refreshTimer);
+  refreshTimer = setTimeout(() => { loadJobs(); }, 300);
+}
+
+function connectSSE() {
+  const es = new EventSource('/api/events');
+  es.addEventListener('job_created', debouncedRefresh);
+  es.addEventListener('job_updated', debouncedRefresh);
+  es.addEventListener('job_deleted', debouncedRefresh);
+  es.addEventListener('queue_changed', debouncedRefresh);
+  es.onopen = () => loadJobs(); // Full state fetch on reconnect
+  es.onerror = () => {
+    // EventSource auto-reconnects. On reconnect, onopen fires and refetches.
+  };
+}
+
+// Auto-refresh detail panel for active jobs every 5 seconds
+setInterval(() => {
+  if (!selectedJobId) return;
+  const job = jobs.find(j => j.job_id === selectedJobId);
+  if (job && ['extracting', 'generating', 'applying'].includes(job.status)) {
+    loadJobDetail(selectedJobId);
+  }
+}, 5000);
+
+// ── Init ─────────────────────────────────────────────────
+loadJobs();
+connectSSE();
+</script>
+</body>
+</html>
