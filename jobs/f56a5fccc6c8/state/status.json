@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "job_id": "f56a5fccc6c8",
+  "source_url": "https://www.linkedin.com/jobs/collections/recommended/?currentJobId=4383931254&discover=recommended&discoveryOrigin=JOBS_HOME_JYMBII",
+  "status": "applied",
+  "created_at": "2026-03-26T12:07:45.811651Z",
+  "updated_at": "2026-03-26T13:16:13.460511Z",
+  "version": 15,
+  "extraction": {
+    "role_title": "Mechatronics Engineer",
+    "company_name": "Oklo Inc",
+    "salary": null,
+    "location": "United States (Remote)",
+    "job_description": "Thanks for your interest in Oklo! We are searching for a Mechatronics Engineer to join our nuclear fuel recycling engineering team.\n\nPosition Description\nThe mechatronics engineer is responsible for designing automated systems and robotic material-handling equipment for remote-operated processes in radiological hot cells for the Oklo Fuel Recycling Facility. Day-to-day activities will include system design, CAD modeling, requirements generation, and eventual prototyping and integration of augmentation into various systems. This role involves close collaboration with cross-functional teams including facility design, chemical engineering, pyroprocessing, instrumentation and controls, software engineering, process modeling, quality assurance, and licensing.\n\nSpecific responsibilities may include:\n\nDesigning robotic and electromechanical systems for remote handling of materials in high-temperature, high corrosion, and high-radiation environments\nDefining architecture, specifications, control logic, and performance criteria for automated material-handling and process systems\nIntegrating automation hardware, sensors, and control systems for reliable unmanned operations\nServing as technical lead for automation and handling systems across their lifecycle\nDeveloping documentation to guide fabrication, installation, commissioning, operation, and maintenance of automated equipment\nGenerating technical documentation for regulatory filings and internal knowledge capture\nBuilding, testing, and iterating on prototypes for automation and handling subsystems\nWriting clear, concise reports and communicating results across disciplines\n\nCompetencies\nWe are looking for a Mechatronics Engineer who is\n\nPassionate about clean energy and advanced fission\nProficient in 2D/3D modeling and CAD for mechanical and robotic systems\nExperienced with electromechanical systems, controls, and automation integration\nEnergized by prototyping and deploying real-world hardware\nCreative and persistent when tackling novel engineering challenges\nComfortable working in a fast-paced, highly iterative startup environment\nA strong communicator, both in technical writing and in collaborative discussions\n\nWho you are:\nA startup person: You aren't driven by titles or hierarchy, and prefer efficiency to excess process. You don't need or expect to have a lot of guidance but you enjoy working in a fast-paced team. If you prefer the culture and feel of a large organization, that is great, but you likely won’t enjoy working with us! There is plenty of important work and plenty of good opportunities with organizations like that.",
+    "scraped_at": "2026-03-26T12:11:20.837036Z"
+  },
+  "generation": {
+    "output_folder": "/Users/felixhyy/Desktop/work/applications/03262026/Oklo_Mechatronics_Engineer",
+    "completed_at": "2026-03-26T13:02:45.984166Z"
+  },
+  "apply": {
+    "screenshot_path": null,
+    "result_path": "/Users/felixhyy/conductor/workspaces/Job_Queue/valencia/jobs/f56a5fccc6c8/output/apply_result.json",
+    "form_filled": true,
+    "resume_uploaded": true,
+    "applied_at": "2026-03-26T13:15:43.430189Z",
+    "fields_filled": [
+      "First Name",
+      "Last Name",
+      "Email",
+      "Phone",
+      "LinkedIn Profile",
+      "Website",
+      "Country",
+      "Are you legally authorized to work in the United States?",
+      "Will you now or in the future require sponsorship for employment visa status?",
+      "Export Control Question",
+      "Are you willing to travel as needed for the position?",
+      "Are you willing to relocate to Santa Clara, CA?",
+      "How did you hear about us?",
+      "What is your desired base compensation for this role?"
+    ],
+    "notification_sent_at": null
+  },
+  "error": {
+    "last_error": null,
+    "retry_count": 0
+  },
+  "worker": {
+    "pid": null,
+    "pgid": null
+  }
+}

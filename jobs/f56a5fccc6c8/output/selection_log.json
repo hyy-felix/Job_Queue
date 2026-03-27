@@ -1,0 +1,415 @@
+{
+  "jd_requirements": [
+    "Designing robotic/electromechanical systems for remote handling in harsh environments",
+    "Defining architecture, specs, control logic for automated material-handling systems",
+    "Integrating automation hardware, sensors, and control systems for unmanned operations",
+    "Technical lead for automation and handling systems across lifecycle",
+    "Documentation for fabrication, installation, commissioning, operation, maintenance",
+    "Technical documentation for regulatory filings",
+    "Prototyping, testing, iterating on hardware",
+    "2D/3D CAD modeling for mechanical and robotic systems",
+    "Electromechanical systems, controls, automation integration",
+    "Fast-paced iterative startup environment",
+    "Strong written communication"
+  ],
+  "jd_keywords": [
+    "robotic material-handling",
+    "remote-operated",
+    "automation integration",
+    "electromechanical systems",
+    "prototyping and iteration"
+  ],
+  "selected_projects": [
+    {
+      "project": "Xiaoxian",
+      "section": "Work Experience",
+      "bullets": [
+        {
+          "source_id": "Xiaoxian-2",
+          "text": "Developed control programs for a six-axis CRP2 robotic arm using embedded C and ladder logic, enabling automated multi-axis motion for fuel rod testing.",
+          "why_present": true,
+          "how_present": true,
+          "transferable": false,
+          "impact_gap": false,
+          "edits": []
+        },
+        {
+          "source_id": "Xiaoxian-1",
+          "text": "Designed an STM32F103-based gateway to enable Modbus RTU communication between the PC and robotic controller, ensuring stable and real-time data exchange.",
+          "why_present": true,
+          "how_present": true,
+          "transferable": false,
+          "impact_gap": false,
+          "edits": []
+        },
+        {
+          "source_id": "Xiaoxian-6",
+          "text": "Proposed and implemented a magnetically-triggered encoder-based imaging system to replace low-precision pulse triggering, ensuring +/-1mm positional accuracy and reducing point-cloud data loss by 30%.",
+          "why_present": true,
+          "how_present": true,
+          "transferable": false,
+          "impact_gap": false,
+          "edits": []
+        },
+        {
+          "source_id": "Xiaoxian-7",
+          "text": "Integrated IR, microswitches, and pressure transducers to monitor system state and trigger safety alarms, enhancing operational reliability across the automated inspection workflow.",
+          "why_present": true,
+          "how_present": true,
+          "transferable": false,
+          "impact_gap": false,
+          "edits": [
+            {
+              "before": "Integrated sensors like IR, microswitches, and pressure transducers to monitor system state and trigger alarms. Enhanced both system operational reliability and safety.",
+              "after": "Integrated IR, microswitches, and pressure transducers to monitor system state and trigger safety alarms, enhancing operational reliability across the automated inspection workflow.",
+              "reason": "Removed vague 'sensors like' phrasing; combined two sentences into one bullet with clearer flow. Factual claim preserved."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "project": "Crane",
+      "section": "Work Experience",
+      "bullets": [
+        {
+          "source_id": "Crane-3 [4]",
+          "text": "Designed a compact, low-power crane system with ESP32-based Wi-Fi remote control, enabling low-latency communication and autonomous coordination across multiple devices, achieving over 95% task repeatability.",
+          "why_present": true,
+          "how_present": true,
+          "transferable": false,
+          "impact_gap": false,
+          "edits": []
+        },
+        {
+          "source_id": "Crane-6 [5]",
+          "text": "Enhanced the crane structure in SolidWorks with FEA; independently constructed STM32-based control circuitry and PCB with a stable fuzzy PID control system.",
+          "why_present": false,
+          "how_present": true,
+          "transferable": false,
+          "impact_gap": true,
+          "edits": []
+        },
+        {
+          "source_id": "Crane-9",
+          "text": "Consolidated five functional boards into a single 4-layer PCB with KiCad, integrating control, power, and communication modules; reduced overall footprint by 40% and verified signal integrity via 100-MHz oscilloscope.",
+          "why_present": true,
+          "how_present": true,
+          "transferable": false,
+          "impact_gap": false,
+          "edits": []
+        },
+        {
+          "source_id": "Crane-14",
+          "text": "Designed a modular crane prototype using aluminum profiles and sheet components, achieving 3 cost-effective iterations in 2 months with 50% faster assembly; enabled future transition to large-scale excavators.",
+          "why_present": true,
+          "how_present": true,
+          "transferable": false,
+          "impact_gap": false,
+          "edits": []
+        }
+      ]
+    },
+    {
+      "project": "LIFT",
+      "section": "Professional Experience",
+      "bullets": [
+        {
+          "source_id": "LIFT-6 [1]",
+          "text": "Led a 5-member cross-functional team to develop a hybrid flying-driving robot platform, achieving 100% integration of mobility and flight subsystems.",
+          "why_present": true,
+          "how_present": false,
+          "transferable": false,
+          "impact_gap": false,
+          "edits": []
+        },
+        {
+          "source_id": "LIFT-1 [7]",
+          "text": "Collaboratively designed a modular foldable robotic arm in Autodesk Fusion, reducing UAV-to-GAV transformation time by 50%.",
+          "why_present": true,
+          "how_present": true,
+          "transferable": false,
+          "impact_gap": false,
+          "edits": []
+        },
+        {
+          "source_id": "LIFT-4",
+          "text": "Integrated OptiTrack motion capture system with the robotic platform, achieving <1 mm position accuracy and <10 ms latency, supporting real-time position feedback for closed-loop control.",
+          "why_present": true,
+          "how_present": true,
+          "transferable": false,
+          "impact_gap": false,
+          "edits": [
+            {
+              "before": "...for closed-loop control in indoor environments.",
+              "after": "...for closed-loop control.",
+              "reason": "Removed 'in indoor environments' to save space; factual claim preserved."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "project": "Vacuum",
+      "section": "Professional Experience",
+      "bullets": [
+        {
+          "source_id": "Vacuum-1",
+          "text": "Spearheaded mechanical design and development of an innovative vacuum dryer system from concept to working prototype, enabling 20-minute drying at 40C with 50 dBA noise level.",
+          "why_present": true,
+          "how_present": true,
+          "transferable": false,
+          "impact_gap": false,
+          "edits": []
+        },
+        {
+          "source_id": "Vacuum-3 [3]",
+          "text": "Performed FMEA on the pump, heater, and motion systems under simulated drying cycles, and designed a sensor-driven control interface with built-in diagnostics to simplify operation and facilitate fault isolation.",
+          "why_present": true,
+          "how_present": true,
+          "transferable": false,
+          "transferable_target": null,
+          "impact_gap": false,
+          "edits": []
+        },
+        {
+          "source_id": "Vacuum-6 [6]",
+          "text": "Engineered a magnetically coupled drive system that eliminated direct mechanical interfaces, resolving vacuum leakage at drive connections and ensuring torque-stable roller actuation.",
+          "why_present": true,
+          "how_present": true,
+          "transferable": true,
+          "transferable_target": "sealed/harsh environment engineering",
+          "impact_gap": false,
+          "edits": []
+        }
+      ]
+    },
+    {
+      "project": "ROBOCON",
+      "section": "Professional Experience",
+      "bullets": [
+        {
+          "source_id": "ROBOCON-8 [2]",
+          "text": "Led end-to-end mechanical development, covering CAD design, BOM planning, component selection, and supplier coordination; delivered three national-level competition robots within strict fabrication timelines.",
+          "why_present": true,
+          "how_present": true,
+          "transferable": false,
+          "impact_gap": false,
+          "edits": []
+        },
+        {
+          "source_id": "ROBOCON-6",
+          "text": "Conducted collision analysis in Ansys to refine weld placement and fastening strategy, resulting in zero structural failures over months of intensive testing.",
+          "why_present": true,
+          "how_present": true,
+          "transferable": false,
+          "impact_gap": false,
+          "edits": []
+        },
+        {
+          "source_id": "ROBOCON-4",
+          "text": "Applied DFM principles to CNC-machine aluminum hubs, improving alignment precision; assembled epoxy modules with mortise-and-tenon joints, boosting modularity and reducing material waste by 20%.",
+          "why_present": true,
+          "how_present": true,
+          "transferable": false,
+          "impact_gap": false,
+          "edits": []
+        }
+      ]
+    }
+  ],
+  "rejected_overlaps": [
+    {
+      "bullet": "[1] Led a 5-member cross-functional team to develop a hybrid flying-driving robot platform, delivering a fully functional prototype within 10 weeks.",
+      "reason": "Overlap tag [1] — kept the variant emphasizing 100% integration of subsystems (stronger match for JD's systems integration focus).",
+      "kept_instead": "Led a 5-member cross-functional team to develop a hybrid flying-driving robot platform, achieving 100% integration of mobility and flight subsystems."
+    },
+    {
+      "bullet": "[7] Handled mechanical design via SolidWorks and Autodesk Fusion, used weighted decision matrices to select the best prototype in three proposal, delivering a fully functional prototype within 10 weeks.",
+      "reason": "Overlap tag [7] — kept 'Collaboratively designed a modular foldable robotic arm in Autodesk Fusion' (robotic arm design is a stronger JD match for Oklo).",
+      "kept_instead": "Collaboratively designed a modular foldable robotic arm in Autodesk Fusion, reducing UAV-to-GAV transformation time by 50%."
+    },
+    {
+      "bullet": "[2] Led mechanical design of 3 robots for a national robotics competition with 80 teams...",
+      "reason": "Overlap tag [2] — kept 'Led end-to-end mechanical development' variant (covers full lifecycle: CAD, BOM, component selection, supplier coordination).",
+      "kept_instead": "Led end-to-end mechanical development, covering CAD design, BOM planning, component selection, and supplier coordination..."
+    },
+    {
+      "bullet": "[2] Oversaw part sourcing, assembly, testing and iteration under DFA principles...",
+      "reason": "Overlap tag [2] — same group, kept the lifecycle variant.",
+      "kept_instead": "Led end-to-end mechanical development..."
+    },
+    {
+      "bullet": "[2] Managed three interdisciplinary teams over a six-month project, overseeing a $20,000 budget...",
+      "reason": "Overlap tag [2] — same group, kept the lifecycle variant.",
+      "kept_instead": "Led end-to-end mechanical development..."
+    },
+    {
+      "bullet": "[3] Led prototype fabrication under DFA principles, machining and assembling key modules...",
+      "reason": "Overlap tag [3] — kept FMEA + diagnostics variant (stronger match for reliability/quality assurance focus in JD).",
+      "kept_instead": "Performed FMEA on the pump, heater, and motion systems..."
+    },
+    {
+      "bullet": "[3] Integrated pump, heater, and sensor subsystems into a compact and robust mechanical-electrical architecture...",
+      "reason": "Overlap tag [3] — same group, kept FMEA variant.",
+      "kept_instead": "Performed FMEA on the pump, heater, and motion systems..."
+    },
+    {
+      "bullet": "[4] Built and programmed a compact mechatronic crane system capable of autonomous object retrieval...",
+      "reason": "Overlap tag [4] — kept the ESP32 Wi-Fi remote control variant (remote operation emphasis matches JD's remote-operated theme).",
+      "kept_instead": "Designed a compact, low-power crane system with ESP32-based Wi-Fi remote control..."
+    },
+    {
+      "bullet": "[4] Developed a compact crane prototype scaled from real industrial models...",
+      "reason": "Overlap tag [4] — same group.",
+      "kept_instead": "Designed a compact, low-power crane system with ESP32-based Wi-Fi remote control..."
+    },
+    {
+      "bullet": "[5] Independently developed an STM32-based control system using fuzzy PID algorithms...",
+      "reason": "Overlap tag [5] — kept variant that includes SolidWorks FEA + PCB construction (broader coverage of CAD + controls).",
+      "kept_instead": "Enhanced the crane structure in SolidWorks with FEA. Independently constructed STM32-based control circuitry and PCB..."
+    },
+    {
+      "bullet": "[5] Collaborated with industry engineers to migrate fuzzy PID logic and the remote control interface to a PLC platform...",
+      "reason": "Overlap tag [5] — same group.",
+      "kept_instead": "Enhanced the crane structure in SolidWorks with FEA..."
+    },
+    {
+      "bullet": "[6] Conducted R&D experiments to develop a magnetically coupled drive enabling leak-free transmission in vacuum...",
+      "reason": "Overlap tag [6] — kept 'Engineered a magnetically coupled drive system' variant (clearer engineering outcome statement).",
+      "kept_instead": "Engineered a magnetically coupled drive system that eliminated direct mechanical interfaces..."
+    }
+  ],
+  "unmatched_jd_gaps": [
+    "High-temperature and high-radiation environment experience (no direct experience; vacuum sealed environment is transferable)",
+    "Technical documentation for regulatory/licensing filings (no direct regulatory filing experience)",
+    "Nuclear/radiological domain knowledge (Xiaoxian fuel rod testing is closest transferable experience)"
+  ],
+  "flags_for_user": [
+    "impact_gap: Crane bullet 'Enhanced the crane structure in SolidWorks with FEA...' lacks explicit measurable impact",
+    "why_how_gap: LIFT bullet 'Led a 5-member cross-functional team...' lacks explicit How",
+    "Unmatched JD requirement: No direct experience with radiological/nuclear regulatory documentation",
+    "Unmatched JD requirement: No direct high-radiation environment experience — Xiaoxian fuel rod testing and Vacuum sealed environment engineering are transferable"
+  ],
+  "trim_priority": [
+    {
+      "rank": 1,
+      "project": "Xiaoxian",
+      "source_id": "Xiaoxian-2",
+      "text": "Developed control programs for a six-axis CRP2 robotic arm using embedded C and ladder logic...",
+      "removable": false
+    },
+    {
+      "rank": 2,
+      "project": "Crane",
+      "source_id": "Crane-3 [4]",
+      "text": "Designed a compact, low-power crane system with ESP32-based Wi-Fi remote control...",
+      "removable": false
+    },
+    {
+      "rank": 3,
+      "project": "Xiaoxian",
+      "source_id": "Xiaoxian-6",
+      "text": "Proposed and implemented a magnetically-triggered encoder-based imaging system...",
+      "removable": true
+    },
+    {
+      "rank": 4,
+      "project": "Xiaoxian",
+      "source_id": "Xiaoxian-1",
+      "text": "Designed an STM32F103-based gateway to enable Modbus RTU communication...",
+      "removable": true
+    },
+    {
+      "rank": 5,
+      "project": "Vacuum",
+      "source_id": "Vacuum-1",
+      "text": "Spearheaded mechanical design and development of an innovative vacuum dryer system...",
+      "removable": false
+    },
+    {
+      "rank": 6,
+      "project": "Vacuum",
+      "source_id": "Vacuum-3 [3]",
+      "text": "Performed FMEA on the pump, heater, and motion systems under simulated drying cycles...",
+      "removable": false
+    },
+    {
+      "rank": 7,
+      "project": "LIFT",
+      "source_id": "LIFT-6 [1]",
+      "text": "Led a 5-member cross-functional team to develop a hybrid flying-driving robot platform...",
+      "removable": false
+    },
+    {
+      "rank": 8,
+      "project": "LIFT",
+      "source_id": "LIFT-1 [7]",
+      "text": "Collaboratively designed a modular foldable robotic arm in Autodesk Fusion...",
+      "removable": false
+    },
+    {
+      "rank": 9,
+      "project": "Xiaoxian",
+      "source_id": "Xiaoxian-7",
+      "text": "Integrated IR, microswitches, and pressure transducers to monitor system state...",
+      "removable": true
+    },
+    {
+      "rank": 10,
+      "project": "Vacuum",
+      "source_id": "Vacuum-6 [6]",
+      "text": "Engineered a magnetically coupled drive system that eliminated direct mechanical...",
+      "removable": true
+    },
+    {
+      "rank": 11,
+      "project": "Crane",
+      "source_id": "Crane-9",
+      "text": "Consolidated five functional boards into a single 4-layer PCB with KiCad...",
+      "removable": true
+    },
+    {
+      "rank": 12,
+      "project": "ROBOCON",
+      "source_id": "ROBOCON-8 [2]",
+      "text": "Led end-to-end mechanical development, covering CAD design, BOM planning...",
+      "removable": false
+    },
+    {
+      "rank": 13,
+      "project": "LIFT",
+      "source_id": "LIFT-4",
+      "text": "Integrated OptiTrack motion capture system with the robotic platform...",
+      "removable": true
+    },
+    {
+      "rank": 14,
+      "project": "Crane",
+      "source_id": "Crane-6 [5]",
+      "text": "Enhanced the crane structure in SolidWorks with FEA...",
+      "removable": true
+    },
+    {
+      "rank": 15,
+      "project": "ROBOCON",
+      "source_id": "ROBOCON-6",
+      "text": "Conducted collision analysis in Ansys to refine weld placement and fastening strategy...",
+      "removable": true
+    },
+    {
+      "rank": 16,
+      "project": "Crane",
+      "source_id": "Crane-14",
+      "text": "Designed a modular crane prototype using aluminum profiles and sheet components...",
+      "removable": true
+    },
+    {
+      "rank": 17,
+      "project": "ROBOCON",
+      "source_id": "ROBOCON-4",
+      "text": "Applied DFM principles to CNC-machine aluminum hubs...",
+      "removable": true
+    }
+  ]
+}

@@ -1,0 +1,331 @@
+warning: The `tool.uv.dev-dependencies` field (used in `/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/pyproject.toml`) is deprecated and will be removed in a future release; use `dependency-groups.dev` instead
+INFO     [service] Using anonymized telemetry, see https://docs.browser-use.com/development/monitoring/telemetry.
+INFO     [Agent] [34m🎯 Task: 
+    Go to this URL: https://www.linkedin.com/jobs/search-results/?currentJobId=4364520619&eBP=CwEAAAGdKgzsvXSkTpAP93nowTelcm33LrADBf5m-LpHNxOtUHWJvG558QOnu7Nl-eaNR_Ro1zehG-yRDCYw84ihP-ykSgXhRk5CeXw2wOePzSTVp1WoJhbMugk6dkf1dstPbd1N84AmAfnDE8_qdwyCdMpPCeVnS91Y5tCohvSaX5Q2Fo6-_nbnj1Z5TsKp-47QLjpUxHG7UqORrTvlIKULDZDnuebJLwHsUlv2iAPBVvTqvNgT0cU10WoQMPnDVT2mus1REYhj5HG3EyFYk9hEiyWmQQCjev3F0loDJG_hqbq9ZKRC9cHWEBdiwvCnaHeUdL48ADhp8oJN9Xjls_RmHQhuIdG0R6gIA66FaXoc-Wds4s7UK14qxEI-M1S87FQ82yZv2YbJKgsv0EXW50teET3Lwi1YvVLpw4DhxSGM2dWIyUV5zV0M2wTVx2TegiM2vQ2GwCpT71xVUTmDFZ-BszOp5yOdUf2HJ4ys0dpKxtCShwobdq768vxRaT6-LFIBy4O8Z3fatfZlzLTMjztOBjBqgnElger4&refId=mcbtgEfyaGdew2VTeoz0xQ%3D%3D&trackingId=nq38nopGLYE4hzVkoAyzcg%3D%3D&keywords=robotics&origin=SEMANTIC_SEARCH_LANDING_PAGE
+
+    IMPORTANT: You MUST read the entire page content carefully before responding.
+    Do NOT return null values without first scrolling through and reading the page.
+
+    After reading the full page, extract these fields:
+    1. role_title: The exact job title shown on the page
+    2. company_name: The company name
+    3. salary: Salary or compensation info (null ONLY if truly not listed anywhere)
+    4. location: Job location (city, state, remote, etc.)
+    5. job_description: Copy the COMPLETE job description text from the page.
+       Include ALL sections: overview, responsibilities, requirements,
+       qualifications, benefits. This must be comprehensive — multiple paragraphs.
+       Do NOT summarize. Copy the actual text from the page.
+
+    If the page shows a 404 error or the job posting is not found, set
+    job_description to a message explaining the page was not found.
+
+    Return ONLY a valid JSON object with these exact keys:
+    role_title, company_name, salary, location, job_description
+
+    No markdown formatting. No explanation. Just the JSON.
+    [0m
+INFO     [Agent] 📦 Newer version available: 0.12.5 (current: 0.12.3). Upgrade with: uv add browser-use==0.12.5
+INFO     [Agent] Starting a browser-use agent with version 0.12.3, with provider=google and model=gemini-2.0-flash
+INFO     [Agent]   ▶️   [34mnavigate[0m: [35murl[0m: https://www.linkedin.com/jobs/search-results/?currentJobId=4364520619&eBP=CwEAAAGdKgzsvXSkTpAP93nowTelcm33LrADBf5m-LpHNxOtUHWJvG558QOnu7Nl-eaNR_Ro1zeh..., [35mnew_tab[0m: True
+INFO     [tools] 🔗  Opened new tab with url https://www.linkedin.com/jobs/search-results/?currentJobId=4364520619&eBP=CwEAAAGdKgzsvXSkTpAP93nowTelcm33LrADBf5m-LpHNxOtUHWJvG558QOnu7Nl-eaNR_Ro1zehG-yRDCYw84ihP-ykSgXhRk5CeXw2wOePzSTVp1WoJhbMugk6dkf1dstPbd1N84AmAfnDE8_qdwyCdMpPCeVnS91Y5tCohvSaX5Q2Fo6-_nbnj1Z5TsKp-47QLjpUxHG7UqORrTvlIKULDZDnuebJLwHsUlv2iAPBVvTqvNgT0cU10WoQMPnDVT2mus1REYhj5HG3EyFYk9hEiyWmQQCjev3F0loDJG_hqbq9ZKRC9cHWEBdiwvCnaHeUdL48ADhp8oJN9Xjls_RmHQhuIdG0R6gIA66FaXoc-Wds4s7UK14qxEI-M1S87FQ82yZv2YbJKgsv0EXW50teET3Lwi1YvVLpw4DhxSGM2dWIyUV5zV0M2wTVx2TegiM2vQ2GwCpT71xVUTmDFZ-BszOp5yOdUf2HJ4ys0dpKxtCShwobdq768vxRaT6-LFIBy4O8Z3fatfZlzLTMjztOBjBqgnElger4&refId=mcbtgEfyaGdew2VTeoz0xQ%3D%3D&trackingId=nq38nopGLYE4hzVkoAyzcg%3D%3D&keywords=robotics&origin=SEMANTIC_SEARCH_LANDING_PAGE
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 1:
+INFO     [Agent]   [32m👍 Eval: Successfully opened the LinkedIn job search results page. Verdict: Success[0m
+INFO     [Agent]   🧠 Memory: Navigated to the LinkedIn job search results page. Need to extract job details: role_title, company_name, salary, location, job_description. Will start by clicking on the first job posting.
+INFO     [Agent]   [34m🎯 Next goal: Click on the first job posting to view the job details.[0m
+INFO     [Agent]   ▶️   [34mclick[0m: [35mindex[0m: 156
+INFO     [tools] 🖱️ Clicked a "MKS Inc."
+INFO     [Agent] 📋 Plan updated with 0 steps
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 2:
+INFO     [Agent]   ❔ Eval: Clicked on the first job posting, but the page is still loading. Verdict: In progress.
+INFO     [Agent]   🧠 Memory: Navigated to the LinkedIn job search results page and clicked on the first job posting. Waiting for the page to load before extracting job details.
+INFO     [Agent]   [34m🎯 Next goal: Wait for the page to load completely.[0m
+INFO     [Agent]   ▶️   [34mwait[0m: [35mseconds[0m: 5
+INFO     [tools] 🕒 waited for 5 seconds
+INFO     [Agent] 📋 Plan updated with 0 steps
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 3:
+INFO     [Agent]   ❔ Eval: Waited for the page to load. The page loaded, but it's the company's career page, not a specific job posting. Verdict: Incomplete.
+INFO     [Agent]   🧠 Memory: Navigated to the LinkedIn job search results page and clicked on the first job posting. The current page is the company's career page. Need to switch back to the search results and click on a specific job posting.
+INFO     [Agent]   [34m🎯 Next goal: Switch back to the search results tab and click on the first job posting again to view the job details.[0m
+INFO     [Agent]   ▶️   [34mswitch[0m: [35mtab_id[0m: 6377
+INFO     [tools] 🔄  Switched to tab #6377
+INFO     [Agent] 📋 Plan updated with 0 steps
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 4:
+INFO     [Agent]   [32m👍 Eval: Successfully switched back to the search results tab. Verdict: Success[0m
+INFO     [Agent]   🧠 Memory: Switched back to the search results page. Need to click on the first job posting and extract job details: role_title, company_name, salary, location, job_description.
+INFO     [Agent]   [34m🎯 Next goal: Click on the first job posting, 'Senior Robotics Research Engineer', to view the job details.[0m
+INFO     [Agent]   ▶️   [34mclick[0m: [35mindex[0m: 5549
+INFO     [tools] 🖱️ Clicked a "Senior Robotics Research Engin..."
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 5:
+INFO     [Agent]   [32m👍 Eval: Clicked on the first job posting, 'Senior Robotics Research Engineer', to view the job details. Verdict: Success[0m
+INFO     [Agent]   🧠 Memory: Navigated to the LinkedIn job search results page and clicked on the first job posting, 'Senior Robotics Research Engineer'.
+INFO     [Agent]   [34m🎯 Next goal: Extract the job details: role_title, company_name, salary, location, and job_description from the job posting page using the extract tool.[0m
+INFO     [Agent]   ▶️   [34mextract[0m: [35mquery[0m: Extract these fields: role_title, company_name, salary, location, job_description. If the page shows a 404 error or the job posting is not found, set ..., [35mextract_links[0m: False, [35mextract_images[0m: False, [35mstart_from_char[0m: 0, [35malready_collected[0m: []
+INFO     [tools] 📄 <url>
+https://www.linkedin.com/jobs/search-results/?currentJobId=4382201791&eBP=CwEAAAGdKg22xD_cin4-wbAK5f0Abgv23bTN6ppTgzLScR7i14ncT4zTlA_EZxGUd8VnYhrc0BrqcUrvAaVmZ_4oErnlUh5Zt2HX9Gj6RZax-X2VJdIV2P34ZgLPhEMlDVz5xrIsm8EOLNVMWEYRFjSQc8qyt2EgHuAUEEvKIDPLip0CxOoSnBBLI7bfuZ3KS1qMq2yjScptIL9XMg2WZslxpn37PiuLzeUVZtnRBx6-gpe61o-5qnOfWqYe_AlLzmVbgJj2M5HrqW_xtrkkSgifuTNa6ZLzv806cZ0aOOsawcXUVWPO3QnbUGvBDT79bO7xovrobVAWs9-fjExnfCnnw4g0q3dSpgX9S5L4KDmoeYdKC3ulSNVNNQreNZR2zTKOvuoB6RddROk4UlO8s-e83kg3RlaiDW715Bu3BZSIW99mjw1bO6ig3-EgOMoh4Q8VllfVBEwtlWr_hSXHiKOAP9GqNeVOe4LKNRrJibDc7akUPN7GkdM&refId=Opqv5RWSp0PLZinr6Nvluw%3D%3D&trackingId=WFs%2BXbDIX5HU1Fdje%2BBoSg%3D%3D&keywords=robotics&origin=SEMANTIC_SEARCH_LANDING_PAGE
+</url>
+<query>
+Extract these fields: role_title, company_name, salary, location, job_description. If the page shows a 404 error or the job posting is not found, set job_description to a message explaining the page was not found. Return ONLY a valid JSON object with these exact keys: role_title, company_name, salary, location, job_description
+</query>
+<result>
+```json
+[
+  {
+    "role_title": "Senior Robotics Research Engineer",
+    "company_name": "Ambi Robotics",
+    "salary": null,
+    "location": "Berkeley, CA",
+    "job_description": null
+  },
+  {
+    "role_title": "Robot Learning Engineer",
+    "company_name": "Innate",
+    "salary": null,
+    "location": "Palo Alto, CA",
+    "job_description": null
+  },
+  {
+    "role_title": "Senior Mechanical (Mechatronics) Engineer for Robotics",
+    "company_name": "Spacer Robotics",
+    "salary": null,
+    "location": "San Francisco, CA",
+    "job_description": null
+  },
+  {
+    "role_title": "Senior Automation Engineer",
+    "company_name": "MKS Instruments",
+    "salary": null,
+    "location": "Milpitas, CA",
+    "job_description": null
+  },
+  {
+    "role_title": "Head of Robotics",
+    "company_name": "Conduit",
+    "salary": null,
+    "location": "San Francisco, CA",
+    "job_description": null
+  },
+  {
+    "role_title": "Senior Robotics Controls Engineer",
+    "company_name": "Mytra",
+    "salary": null,
+    "location": "Brisbane, CA",
+    "job_description": null
+  },
+  {
+    "role_title": "Mechatronics & Robotics Technician",
+    "company_name": "Cushman & Wakefield",
+    "salary": null,
+    "location": "Richmond, CA",
+    "job_description": null
+  },
+  {
+    "role_title": "Robot Operator",
+    "company_name": "HireArt",
+    "salary": null,
+    "location": "San Francisco, CA",
+    "job_description": null
+  },
+  {
+    "role_title": "Autonomy Engineer – Flight Autonomy / Defense Robotics / Autonomous Drones / Ground Robots",
+    "company_name": "Attis",
+    "salary": "$150K/yr - $210K/yr",
+    "location": "San Francisco Bay Area",
+    "job_description": null
+  },
+  {
+    "role_title": "Robotics Engineer",
+    "company_name": "DeepAware AI (YC S25)",
+    "salary": "$120K/yr - $165K/yr",
+    "location": "San Francisco, CA",
+    "job_description": null
+  },
+  {
+    "role_title": "Robotics Engineer",
+    "company_name": "Lightberry",
+    "salary": "$150K/yr - $225K/yr",
+    "location": "San Francisco, CA",
+    "job_description": null
+  },
+  {
+    "role_title": "Forward Deployed Robotics Engineer",
+    "company_name": "Medra",
+    "salary": null,
+    "location": "San Francisco, CA",
+    "job_description": null
+  },
+  {
+    "role_title": "Robotics Research Engineer",
+    "company_name": "David Joseph & Company",
+    "salary": "$150K/month - $180K/month",
+    "location": "Palo Alto, CA",
+    "job_description": null
+  },
+  {
+    "role_title": "Robotics Application Engineer",
+    "company_name": "Bedrock Robotics",
+    "salary": null,
+    "location": "San Francisco, CA",
+    "job_description": null
+  },
+  {
+    "role_title": "Robotics Systems Engineer",
+    "company_name": "Real",
+    "salary": "$55/hr - $70/hr",
+    "location": "Santa Clara, CA",
+    "job_description": null
+  },
+  {
+    "role_title": "Robotics Engineer (Product / Electrical)",
+    "company_name": "Becoming",
+    "salary": null,
+    "location": "San Francisco, CA",
+    "job_description": null
+  },
+  {
+    "role_title": "Robotics Controls Engineer",
+    "company_name": "Pronto",
+    "salary": null,
+    "location": "San Francisco, CA",
+    "job_description": null
+  },
+  {
+    "role_title": "Controls Engineer",
+    "company_name": "Dexterity, Inc.",
+    "salary": "$150K/yr - $190K/yr",
+    "location": "Redwood City, CA",
+    "job_description": null
+  },
+  {
+    "role_title": "Robotics Software Engineer",
+    "company_name": "Medra",
+    "salary": null,
+    "location": "San Francisco, CA",
+    "job_description": null
+  },
+  {
+    "role_title": "Robotics Systems Engineer",
+    "company_name": "Pronto",
+    "salary": null,
+    "location": "San Francisco, CA",
+    "job_description": null
+  },
+  {
+    "role_title": "Robotics Software Engineer",
+    "company_name": "Skild AI",
+    "salary": null,
+    "location": "San Francisco Bay Area",
+    "job_description": null
+  },
+  {
+    "role_title": "Forward Deployed Robotics Engineer",
+    "company_name": "Orchard",
+    "salary": "$135K/yr - $175K/yr",
+    "location": "San Francisco, CA",
+    "job_description": null
+  },
+  {
+    "role_title": "Senior Robotics Integration Engineer",
+    "company_name": "Charge Robotics",
+    "salary": "$150K/yr - $190K/yr",
+    "location": "San Leandro, CA",
+    "job_description": null
+  },
+  {
+    "role_title": "Senior Robotics Simulation Engineer",
+    "company_name": "Mytra",
+    "salary": null,
+    "location": "Brisbane, CA",
+    "job_description": null
+  },
+  {
+    "role_title": "Robotics Software Engineer",
+    "company_name": "Cosmic Robotics",
+    "salary": null,
+    "location": "San Francisco, CA",
+    "job_description": null
+  }
+]
+```
+</result>
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 6:
+INFO     [Agent]   ❔ Eval: Extracted job details from the LinkedIn search results page, but the job descriptions were null. Verdict: Incomplete.
+INFO     [Agent]   🧠 Memory: Extracted job details from the LinkedIn search results page, but the job descriptions were null. Need to click on the first job posting again and scroll through the entire job description to extract the complete job description.
+INFO     [Agent]   [34m🎯 Next goal: Click on the first job posting, 'Senior Robotics Research Engineer', to view the job details and extract the complete job description.[0m
+INFO     [Agent]   ▶️   [34mclick[0m: [35mindex[0m: 7509
+INFO     [tools] 🖱️ Clicked div role=button "Senior Robotics Research Engin..."
+INFO     [Agent] 📋 Plan updated with 0 steps
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 7:
+INFO     [Agent]   ❔ Eval: Clicked on the first job posting again, but the page is still the search results page. Verdict: Incomplete.
+INFO     [Agent]   🧠 Memory: Navigated to the LinkedIn job search results page and clicked on the first job posting. The previous extraction attempt resulted in null job descriptions. Need to scroll down the page and extract the job details again.
+INFO     [Agent]   [34m🎯 Next goal: Scroll down the page to load the entire job description and then extract the job details again.[0m
+INFO     [Agent]   ▶️  [1/2] [34mscroll[0m: [35mdown[0m: True, [35mpages[0m: 5.0, [35mindex[0m: None
+INFO     [tools] 🔍 Scrolled down 5.0 pages
+INFO     [Agent]   ▶️  [2/2] [34mextract[0m: [35mquery[0m: Extract these fields: role_title, company_name, salary, location, job_description. If the page shows a 404 error or the job posting is not found, set ..., [35mextract_links[0m: False, [35mextract_images[0m: False, [35mstart_from_char[0m: 123, [35malready_collected[0m: []
+INFO     [tools] 📄 <url>
+https://www.linkedin.com/jobs/search-results/?currentJobId=4382201791&eBP=CwEAAAGdKg22xD_cin4-wbAK5f0Abgv23bTN6ppTgzLScR7i14ncT4zTlA_EZxGUd8VnYhrc0BrqcUrvAaVmZ_4oErnlUh5Zt2HX9Gj6RZax-X2VJdIV2P34ZgLPhEMlDVz5xrIsm8EOLNVMWEYRFjSQc8qyt2EgHuAUEEvKIDPLip0CxOoSnBBLI7bfuZ3KS1qMq2yjScptIL9XMg2WZslxpn37PiuLzeUVZtnRBx6-gpe61o-5qnOfWqYe_AlLzmVbgJj2M5HrqW_xtrkkSgifuTNa6ZLzv806cZ0aOOsawcXUVWPO3QnbUGvBDT79bO7xovrobVAWs9-fjExnfCnnw4g0q3dSpgX9S5L4KDmoeYdKC3ulSNVNNQreNZR2zTKOvuoB6RddROk4UlO8s-e83kg3RlaiDW715Bu3BZSIW99mjw1bO6ig3-EgOMoh4Q8VllfVBEwtlWr_hSXHiKOAP9GqNeVOe4LKNRrJibDc7akUPN7GkdM&refId=Opqv5RWSp0PLZinr6Nvluw%3D%3D&trackingId=WFs%2BXbDIX5HU1Fdje%2BBoSg%3D%3D&keywords=robotics&origin=SEMANTIC_SEARCH_LANDING_PAGE
+</url>
+<query>
+Extract these fields: role_title, company_name, salary, location, job_description. If the page shows a 404 error or the job posting is not found, set job_description to a message explaining the page was not found. Return ONLY a valid JSON object with these exact keys: role_title, company_name, salary, location, job_description
+</query>
+<result>
+```json
+{
+  "role_title": "Senior Robotics Research Engineer",
+  "company_name": "Ambi Robotics",
+  "salary": null,
+  "location": "Berkeley, CA",
+  "job_description": "We are seeking a Senior Robotics Research Engineer to design and develop fundamental new contributions to core robotics libraries and runtime application software for Ambi products, focused on new technology for the future. You will work closely with the Software team and the CTO.\n\nIn this role you will:\n- Independently develop robot applications and capabilities (controls, planning, perception)\n- Lead R&D projects for new AI-driven robot skills, powered by foundation models\n- Contribute to AmbiOS core libraries in areas such as: (a) scalable AI training, algorithms, models, and evaluation, (b) perception modules, (c) image and point cloud processing, (d) motion planning policies, (e) collision checkers\n- Support software deployments to AI-powered robotic systems in production with global brands\n- Modify existing software and configurations for new customers\nYou are a good fit if you have:\n- Eagerness to learn, solve challenging problems, and lead with curiosity\n- A desire for career growth, ownership of your work, and making an impact\n- Excitement about amplifying human potential with state-of-the-art robotics\n- Proficiency in C++, Python, Linux, Git, and, Docker\n- Expertise in motion planning, contact physics, machine learning, and computer vision\n- Experience in the following areas: robotics (3D rigid geometry, kinematics, motion planning), software architecture, state machines, multi-processing, operating systems (must know UNIX), drivers (cameras, sensors, other equipment), and software update systems\n- An MS with four years of experience in commercial robotics software development or equivalent or PhD in a very related subject\n- (BONUS) Experience in Rust\nIn addition to competitive compensation, we offer benefits such as:\n- Health, dental, and vision insurance\n- 401k with 5% matching by Ambi\n- Equity ownership\n- Unlimited PTO\n- Partial WFH\n- Free parking on site at HQ\n- Access to a full gym at HQ\n- Free lunches 2x per week\nPLEASE NOTE:\n- All applications must be submitted online for equitable review. We do not accept or review submissions sent via email, including to individual team members or engineers. This policy ensures a fair and streamlined process for everyone.\nFOR RECRUITERS:\n- This position is direct-hire only; unsolicited resumes from recruiters will not be considered and may result in a fee waiver."
+}
+```
+</result>
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 8:
+INFO     [Agent]   [32m👍 Eval: Successfully extracted the job details, including the job description, from the LinkedIn search results page for the first job posting after scrolling down the page. Verdict: Success[0m
+INFO     [Agent]   🧠 Memory: Extracted job details for the first job posting, 'Senior Robotics Research Engineer' from Ambi Robotics, including the role_title, company_name, salary, location, and job_description. The job_description was extracted after scrolling down the page.
+INFO     [Agent]   [34m🎯 Next goal: Call the done action with the extracted job details.[0m
+INFO     [Agent]   ▶️   [34mdone[0m: [35mtext[0m: {
+  "role_title": "Senior Robotics Research Engineer",
+  "company_name": "Ambi Robotics",
+  "salary": null,
+  "location": "Berkeley, CA",
+  "job_descr..., [35msuccess[0m: True, [35mfiles_to_display[0m: None
+INFO     [Agent] 📋 Plan updated with 0 steps
+INFO     [Agent] 
+📄 [32m Final Result:[0m 
+{
+  "role_title": "Senior Robotics Research Engineer",
+  "company_name": "Ambi Robotics",
+  "salary": null,
+  "location": "Berkeley, CA",
+  "job_description": "We are seeking a Senior Robotics Research Engineer to design and develop fundamental new contributions to core robotics libraries and runtime application software for Ambi products, focused on new technology for the future. You will work closely with the Software team and the CTO.\n\nIn this role you will:\n- Independently develop robot applications and capabilities (controls, planning, perception)\n- Lead R&D projects for new AI-driven robot skills, powered by foundation models\n- Contribute to AmbiOS core libraries in areas such as: (a) scalable AI training, algorithms, models, and evaluation, (b) perception modules, (c) image and point cloud processing, (d) motion planning policies, (e) collision checkers\n- Support software deployments to AI-powered robotic systems in production with global brands\n- Modify existing software and configurations for new customers\nYou are a good fit if you have:\n- Eagerness to learn, solve challenging problems, and lead with curiosity\n- A desire for career growth, ownership of your work, and making an impact\n- Excitement about amplifying human potential with state-of-the-art robotics\n- Proficiency in C++, Python, Linux, Git, and, Docker\n- Expertise in motion planning, contact physics, machine learning, and computer vision\n- Experience in the following areas: robotics (3D rigid geometry, kinematics, motion planning), software architecture, state machines, multi-processing, operating systems (must know UNIX), drivers (cameras, sensors, other equipment), and software update systems\n- An MS with four years of experience in commercial robotics software development or equivalent or PhD in a very related subject\n- (BONUS) Experience in Rust\nIn addition to competitive compensation, we offer benefits such as:\n- Health, dental, and vision insurance\n- 401k with 5% matching by Ambi\n- Equity ownership\n- Unlimited PTO\n- Partial WFH\n- Free parking on site at HQ\n- Access to a full gym at HQ\n- Free lunches 2x per week\nPLEASE NOTE:\n- All applications must be submitted online for equitable review. We do not accept or review submissions sent via email, including to individual team members or engineers. This policy ensures a fair and streamlined process for everyone.\nFOR RECRUITERS:\n- This position is direct-hire only; unsolicited resumes from recruiters will not be considered and may result in a fee waiver."
+}
+
+
+INFO     [Agent] ✅ Task completed successfully
+WARNING  [BrowserSession] 🔌 CDP WebSocket message handler exited unexpectedly (connection closed)
+WARNING  [BrowserSession] 🔄 WebSocket reconnection attempt 1/3...
+an error occurred during closing of asynchronous generator <async_generator object Connection.send_context at 0x119096570>
+asyncgen: <async_generator object Connection.send_context at 0x119096570>
+RuntimeError: aclose(): asynchronous generator is already running
+Extracting job data from: https://www.linkedin.com/jobs/search-results/?currentJobId=4364520619&eBP=CwEAAAGdKgzsvXSkTpAP93nowTelcm33LrADBf5m-LpHNxOtUHWJvG558QOnu7Nl-eaNR_Ro1zehG-yRDCYw84ihP-ykSgXhRk5CeXw2wOePzSTVp1WoJhbMugk6dkf1dstPbd1N84AmAfnDE8_qdwyCdMpPCeVnS91Y5tCohvSaX5Q2Fo6-_nbnj1Z5TsKp-47QLjpUxHG7UqORrTvlIKULDZDnuebJLwHsUlv2iAPBVvTqvNgT0cU10WoQMPnDVT2mus1REYhj5HG3EyFYk9hEiyWmQQCjev3F0loDJG_hqbq9ZKRC9cHWEBdiwvCnaHeUdL48ADhp8oJN9Xjls_RmHQhuIdG0R6gIA66FaXoc-Wds4s7UK14qxEI-M1S87FQ82yZv2YbJKgsv0EXW50teET3Lwi1YvVLpw4DhxSGM2dWIyUV5zV0M2wTVx2TegiM2vQ2GwCpT71xVUTmDFZ-BszOp5yOdUf2HJ4ys0dpKxtCShwobdq768vxRaT6-LFIBy4O8Z3fatfZlzLTMjztOBjBqgnElger4&refId=mcbtgEfyaGdew2VTeoz0xQ%3D%3D&trackingId=nq38nopGLYE4hzVkoAyzcg%3D%3D&keywords=robotics&origin=SEMANTIC_SEARCH_LANDING_PAGE
+CDP mode: connecting to http://localhost:9222
+Using LLM: Google AI gemini-2.0-flash
+Connecting to existing browser at: http://localhost:9222
+Extraction complete: /Users/felixhyy/conductor/workspaces/Job_Queue/valencia/jobs/f9536b407d5e/input/job.json
+Task was destroyed but it is pending!
+task: <Task pending name='Task-3516' coro=<BrowserSession._auto_reconnect() done, defined at /Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/browser_use/browser/session.py:2090> wait_for=<Future pending cb=[shield.<locals>._outer_done_callback() at /Users/felixhyy/.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/asyncio/tasks.py:922, Task.task_wakeup()]>>

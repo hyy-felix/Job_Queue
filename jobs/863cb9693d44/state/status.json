@@ -2,10 +2,10 @@
   "schema_version": 1,
   "job_id": "863cb9693d44",
   "source_url": "https://www.linkedin.com/jobs/collections/top-applicant/?currentJobId=4389288487",
-  "status": "completed",
+  "status": "applied",
   "created_at": "2026-03-26T05:15:03.224992Z",
-  "updated_at": "2026-03-26T06:34:14.038917Z",
-  "version": 10,
+  "updated_at": "2026-03-26T11:52:29.874036Z",
+  "version": 15,
   "extraction": {
     "role_title": "Senior Robotics and AI Research",
     "company_name": "Energize Group",
@@ -20,11 +20,20 @@
   },
   "apply": {
     "screenshot_path": null,
-    "result_path": null,
-    "form_filled": false,
-    "resume_uploaded": false,
-    "applied_at": null,
-    "fields_filled": []
+    "result_path": "/Users/felixhyy/conductor/workspaces/Job_Queue/valencia/jobs/863cb9693d44/output/apply_result.json",
+    "form_filled": true,
+    "resume_uploaded": true,
+    "applied_at": "2026-03-26T11:52:29.873423Z",
+    "fields_filled": [
+      "Email address",
+      "Phone country code",
+      "Mobile phone number",
+      "Resume",
+      "Cover Letter",
+      "How many years of work experience do you have with Prototyping?",
+      "Do you have hands-on experience integrating industrial robotic systems (FANUC, ABB, or UR), including EOAT, vision systems, and PLC/controls?",
+      "Have you been responsible for troubleshooting and debugging robotic or automated systems in a production or prototyping environment?"
+    ]
   },
   "error": {
     "last_error": null,

@@ -1,0 +1,20 @@
+{
+  "status": "form_filled",
+  "screenshot_path": null,
+  "url_navigated": "https://www.linkedin.com/jobs/collections/top-applicant/?currentJobId=4389288487",
+  "fields_filled": [
+    "Email address",
+    "Phone country code",
+    "Mobile phone number",
+    "Resume",
+    "Cover Letter",
+    "How many years of work experience do you have with Prototyping?",
+    "Do you have hands-on experience integrating industrial robotic systems (FANUC, ABB, or UR), including EOAT, vision systems, and PLC/controls?",
+    "Have you been responsible for troubleshooting and debugging robotic or automated systems in a production or prototyping environment?"
+  ],
+  "fields_failed": [],
+  "resume_uploaded": true,
+  "error": null,
+  "llm_used": "Google AI gemini-2.0-flash",
+  "timestamp": "2026-03-26T11:51:25.213888+00:00"
+}

@@ -1,0 +1,18 @@
+All done. Here's a summary:
+
+**Resume** (1 page) — 4 projects, 11 bullets covering controls, motion planning, perception, embedded systems, and ROS2. QA fixes applied (removed keyword injection, derived additions, ownership inflation).
+
+**Cover letter** (1 page, ~260 words) — Addressed to Dr. Jeff Mahler (CTO). Three themes: ROS2/MPC controls depth, industrial perception/robotic arm deployment, and forward-looking Dex-Net-to-Physical-AI alignment. Updated P2 to match trimmed resume (removed OptiTrack reference, added unified drivetrain).
+
+**HR review noted structural gaps** (saved to `note/hr_review.md`):
+- No ML/AI/CV experience (core JD requirement — cannot fabricate)
+- Experience level below "Senior" (MS + 6mo internship vs. MS + 4yr required)
+- These are honest gaps the candidate should be aware of
+
+**All required files packaged:**
+- `resume.pdf`, `cover_letter.pdf`, plus full `note/` directory with tex sources, selection log, notes, and compile log.
+
+OUTPUT_PATH: /Users/felixhyy/Desktop/work/applications/03262026/Ambi_Robotics_Senior_Robotics_Research_Engineer
+ is a reach application. The role's core research requirements (ML, CV, contact physics, foundation models) have no direct evidence in the candidate's background. The resume's strengths in controls, embedded C++, kinematics, ROS2/MPC, and point cloud processing are genuine and relevant to parts of the role. The Berkeley MEng + Jeff Mahler/Dex-Net connection is a meaningful institutional hook.
+
+OUTPUT_PATH: /Users/felixhyy/Desktop/work/applications/03262026/Ambi_Robotics_Senior_Robotics_Research_Engineer/

@@ -58,6 +58,15 @@ CDP_URL = os.environ.get("JQ_CDP_URL", "")
 # ── Mock mode (for testing when LLM credentials are unavailable) ──
 MOCK_EXTRACTION = os.environ.get("JQ_MOCK_EXTRACTION", "").lower() in ("1", "true", "yes")
 
+# ── Auto-submit ──────────────────────────────────────────────
+AUTO_SUBMIT = os.environ.get("JQ_AUTO_SUBMIT", "").lower() in ("1", "true", "yes")
+
+# ── Email notification ───────────────────────────────────────
+GMAIL_APP_PASSWORD = os.environ.get("JQ_GMAIL_APP_PASSWORD", "")
+# Note: GMAIL_USER and NOTIFICATION_EMAIL are resolved at send time
+# in notifications.py (from env vars with profile.json fallback),
+# NOT at config import time.
+
 # ── Temp file paths ───────────────────────────────────────
 import tempfile
 TEMP_DIR = Path(tempfile.gettempdir())

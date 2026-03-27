@@ -5,7 +5,7 @@
   "fields_filled": [],
   "fields_failed": [],
   "resume_uploaded": false,
-  "error": "Agent error: Failed to establish CDP connection to browser: did not receive a valid HTTP response",
+  "error": "Agent returned non-JSON: fields_filled: ['Name', 'Email', 'LinkedIn Profile', 'Link to portfolio, personal website or personal work', 'How many years of experience do you have?', 'Are you located in the Greater Boston Area or",
   "llm_used": "Google AI gemini-2.0-flash",
-  "timestamp": "2026-03-26T04:43:36.359609+00:00"
+  "timestamp": "2026-03-26T12:37:53.379740+00:00"
 }

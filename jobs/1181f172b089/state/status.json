@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "job_id": "1181f172b089",
+  "source_url": "https://www.linkedin.com/jobs/collections/top-applicant/?currentJobId=4389598916",
+  "status": "apply_failed",
+  "created_at": "2026-03-26T12:06:48.173640Z",
+  "updated_at": "2026-03-26T13:10:32.135990Z",
+  "version": 15,
+  "extraction": {
+    "role_title": "Forward Deployed Engineer (Robotics)",
+    "company_name": "Fireloop AI",
+    "salary": null,
+    "location": "Remote (USA) – Only open for candidates presently in the USA.",
+    "job_description": "About the job\nLocation:Remote (USA) – Only open for candidates presently in the USA.\nEmployment Type:Full-time (H1B Sponsorship Available)\nExperience:Open to Fresh Graduates & Aspiring Engineers\nHow to Apply?:Send your resume and cover letter to careers@fireloop.ai\nAbout the Role\nAt Fireloop, we build the critical infrastructure that bridges the gap between advanced robotics research and real-world production. We are looking for an aspiring Forward Deployed Engineer (FDE) who is ready to get their hands dirty at the intersection of software, hardware, and client delivery.\nIn this role, you will be the \"boots on the ground\" (virtually) for our deployments. You will start by shadowing our core engineering team to absorb our technology stack, and then transition into a key role where you ensure our robotics solutions run flawlessly in client environments.\nThis is not a traditional R&D role; it is an integration and execution role. We don't need you to invent new SLAM algorithms from scratch, but we do need you to understand how they work, how to debug them when they fail, and how to make them reliable for our customers.\nWhat You Will Do\nSimulation & Synthetic Data Generation:Define, simulate and train pre-go-live scenarios using Isaac SIM and Isaac Lab.\nDeployment & Integration:Take ownership of the \"last mile\" of engineering. You will deploy robotics software stacks into client environments (cloud and edge) and ensure they integrate smoothly with existing hardware.\nROS/ROS2 Engineering:Write, debug, and configure ROS nodes. You will handle message passing, coordinate transforms (TF2), and launch file configurations to ensure different parts of the robot talk to each other.\nSystem Debugging:Troubleshoot complex issues that only happen in the real world. You will dig into logs, analyze network traffic, and fix configuration errors to maximize system uptime.\nShadow & Learn:Work side-by-side with senior architects to learn best practices in robotics infrastructure, simulation, and agentic AI.\nFeedback Loop:Act as the technical voice of the field. You will identify bugs and edge cases during deployment and channel that feedback to the core team to improve the product.\nWho You Are\nAspirational & Hungry:You might be early in your career, but you have a relentless drive to learn. You treat every error message as a challenge, not a roadblock.\nStrong Engineering Fundamentals:You have a solid grasp of Computer Science basics (Data Structures, Algorithms) and the mathematical foundations of robotics (Linear Algebra, Matrices).",
+    "scraped_at": "2026-03-26T12:07:24.854089Z"
+  },
+  "generation": {
+    "output_folder": "/Users/felixhyy/Desktop/work/applications/03262026/Fireloop_AI_Forward_Deployed_Engineer",
+    "completed_at": "2026-03-26T12:44:56.920767Z"
+  },
+  "apply": {
+    "screenshot_path": null,
+    "result_path": null,
+    "form_filled": false,
+    "resume_uploaded": false,
+    "applied_at": null,
+    "fields_filled": [],
+    "notification_sent_at": null
+  },
+  "error": {
+    "last_error": "Apply subprocess exited 1",
+    "retry_count": 0
+  },
+  "worker": {
+    "pid": null,
+    "pgid": null
+  }
+}

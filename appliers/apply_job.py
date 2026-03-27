@@ -107,8 +107,7 @@ async def apply_to_job(
                       error=f"Resume PDF not found: {resume_pdf}")
         sys.exit(1)
 
-    cover_letter_path = Path(cover_letter_pdf)
-    has_cover_letter = cover_letter_path.exists()
+    has_cover_letter = bool(cover_letter_pdf) and Path(cover_letter_pdf).exists()
 
     # ── Build the browser-use task prompt ─────────────────────────
     profile_info = ""
@@ -122,6 +121,39 @@ Candidate information to fill into the form:
 - Website: {profile.get('website', '')}
 - Location: {profile.get('location', '')}
 """
+
+    resume_upload_instruction = f"""
+Resume upload instructions (CRITICAL — read carefully):
+- When you reach a "Choose resume" or resume selection step, the site (especially
+  LinkedIn Easy Apply) may show existing saved resumes as radio buttons or cards,
+  with one already pre-selected by default.
+- Do NOT select, keep, or confirm any existing saved resume. A pre-selected
+  default resume does NOT satisfy this task.
+- Look for an "Upload resume" button, link, or equivalent upload control.
+- Click it to open a file chooser, then upload this exact local file: {resume_pdf}
+- Wait until the UI shows the newly uploaded filename or clearly indicates
+  that the new resume file is attached.
+- Do NOT click Next, Review, or Submit from the resume step until the newly
+  uploaded resume is visibly attached.
+- If you cannot find an upload control or the upload fails, report failure.
+"""
+
+    cover_letter_upload_instruction = (
+        f"""
+Cover letter upload instructions:
+- If a cover letter upload section appears, do NOT select any existing saved cover letter.
+- Click the "Upload cover letter" button/link or equivalent upload control.
+- Upload this exact local file: {cover_letter_pdf}
+- Wait until the UI shows the uploaded filename confirming the new cover letter is attached.
+- If the form does not request a cover letter, skip this step.
+"""
+        if has_cover_letter else """
+Cover letter upload instructions:
+- If the form does not request a cover letter, skip this step.
+- If the form requires a cover letter and no local file is available, report that
+  failure explicitly.
+"""
+    )
 
     submit_instruction = ""
     if submit:
@@ -147,14 +179,17 @@ button that leads to an application form, click it first.
 
 Fill in the application form:
 1. Fill all text fields you can match to the candidate information above.
-2. Upload the resume file from this path: {resume_pdf}
-3. {"Upload the cover letter from: " + cover_letter_pdf if has_cover_letter else "Skip cover letter upload if not required."}
-4. For any dropdown fields (e.g., country, state), select the closest match.
-5. For fields you don't have data for, leave them empty rather than guessing.
+2. For any dropdown fields (e.g., country, state), select the closest match.
+3. For fields you don't have data for, leave them empty rather than guessing.
+
+{resume_upload_instruction}
+
+{cover_letter_upload_instruction}
 
 After filling the form:
-- Check if the resume file input shows a filename (not empty). Report whether
-  the upload appears successful.
+- Report resume_uploaded as true ONLY if the newly uploaded local resume file
+  is visibly attached in the UI. Do NOT count a pre-selected existing saved
+  resume as uploaded.
 - List every field you successfully filled.
 - List any fields you could not fill and why.
 
@@ -165,7 +200,7 @@ Finally, take a screenshot of the current page state.
 Return a JSON object with these exact keys:
 - fields_filled: array of field names you successfully filled
 - fields_failed: array of field names you could not fill
-- resume_uploaded: boolean, true if the file input shows a filename
+- resume_uploaded: boolean, true ONLY if the NEW resume was uploaded (not a default)
 - error: null if no issues, or a string describing what went wrong
 
 No markdown formatting. No explanation. Just the JSON.

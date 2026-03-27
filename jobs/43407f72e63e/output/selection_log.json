@@ -1,0 +1,403 @@
+{
+  "jd_requirements": [
+    "Real-time software stack for industrial robots",
+    "Motion control algorithms, kinematics, trajectory planning",
+    "MoveIt-based manipulation pipelines",
+    "C++, Python, ROS 2",
+    "Perception, localization, mapping, path planning, sensor fusion",
+    "Mentor junior engineers",
+    "Hardware-software integration across mechanical, electrical, controls teams",
+    "Sensors, actuators, PLCs, industrial controllers synchronization",
+    "System calibration, network synchronization, timing optimization",
+    "Reusable drivers, middleware layers, communication interfaces",
+    "Simulation environments, HIL testing, real-time telemetry",
+    "Metrics, logging, data analytics for system performance",
+    "Root-cause analysis and system-level debugging",
+    "Code quality, testing, CI/CD automation",
+    "Design and code reviews",
+    "Deployment and lifecycle support in production environments"
+  ],
+  "jd_keywords": [
+    "ROS 2",
+    "motion control / kinematics / trajectory planning",
+    "C++ / Python",
+    "PLC / industrial controllers",
+    "hardware-software integration"
+  ],
+  "selected_projects": [
+    {
+      "project": "Xiaoxian",
+      "bullets": [
+        {
+          "source_id": "Xiaoxian-2",
+          "text": "Developed control programs for a six-axis CRP2 robotic arm using embedded C and ladder logic, enabling automated multi-axis motion for fuel rod testing.",
+          "why_present": true,
+          "how_present": true,
+          "transferable": false,
+          "impact_gap": false,
+          "edits": []
+        },
+        {
+          "source_id": "Xiaoxian-1",
+          "text": "Designed an STM32F103-based gateway to enable Modbus RTU communication between the PC and robotic controller, ensuring stable and real-time data exchange.",
+          "why_present": true,
+          "how_present": true,
+          "transferable": false,
+          "impact_gap": false,
+          "edits": [
+            {
+              "before": "Designed an STM32F103-based gateway to enable Modbus RTU communication between the PC and robotic controller. Ensured stable and real-time data exchange.",
+              "after": "Designed an STM32F103-based gateway to enable Modbus RTU communication between the PC and robotic controller, ensuring stable and real-time data exchange.",
+              "reason": "Combined two sentences for flow; no factual change."
+            }
+          ]
+        },
+        {
+          "source_id": "Xiaoxian-8",
+          "text": "Reviewed and debugged Siemens S7-1200 PLC programs submitted by a third-party integrator, verifying and validating the full automation workflow for surface defect detection of large flat materials.",
+          "why_present": true,
+          "how_present": true,
+          "transferable": false,
+          "impact_gap": false,
+          "edits": [
+            {
+              "before": "Reviewed and debugged Siemens S7-1200 PLC programs submitted by a third-party integrator. Verified and validated the full automation workflow for surface defect detection of large flat materials.",
+              "after": "Reviewed and debugged Siemens S7-1200 PLC programs submitted by a third-party integrator, verifying and validating the full automation workflow for surface defect detection of large flat materials.",
+              "reason": "Combined two sentences for flow; no factual change."
+            }
+          ]
+        },
+        {
+          "source_id": "Xiaoxian-7",
+          "text": "Integrated sensors including IR, microswitches, and pressure transducers to monitor system state and trigger alarms, enhancing operational reliability and safety.",
+          "why_present": true,
+          "how_present": true,
+          "transferable": false,
+          "impact_gap": true,
+          "edits": [
+            {
+              "before": "Integrated sensors like IR, microswitches, and pressure transducers to monitor system state and trigger alarms. Enhanced both system operational reliability and safety.",
+              "after": "Integrated sensors including IR, microswitches, and pressure transducers to monitor system state and trigger alarms, enhancing operational reliability and safety.",
+              "reason": "Replaced 'like' with 'including' for precision; combined sentences; no factual change."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "project": "LIFT",
+      "bullets": [
+        {
+          "source_id": "LIFT-6",
+          "text": "Led a 5-member cross-functional team to develop a hybrid flying-driving robot platform, achieving 100% integration of mobility and flight subsystems.",
+          "why_present": true,
+          "how_present": true,
+          "transferable": false,
+          "impact_gap": false,
+          "edits": []
+        },
+        {
+          "source_id": "LIFT-5",
+          "text": "Developed a ROS2-based robotic system integrating a simulator and MPC controller, enabling precise obstacle avoidance and full trajectory completion with real-time state logging.",
+          "why_present": true,
+          "how_present": true,
+          "transferable": false,
+          "impact_gap": false,
+          "edits": []
+        },
+        {
+          "source_id": "LIFT-4",
+          "text": "Integrated OptiTrack motion capture system with the robotic platform, achieving <1 mm position accuracy and <10 ms latency, supporting real-time position feedback for closed-loop control.",
+          "why_present": true,
+          "how_present": true,
+          "transferable": false,
+          "impact_gap": false,
+          "edits": [
+            {
+              "before": "Integrated OptiTrack motion capture system with robotic platform, achieving <1 mm position accuracy and <10 ms latency, supporting real-time position feedback for closed-loop control in indoor environments.",
+              "after": "Integrated OptiTrack motion capture system with the robotic platform, achieving <1 mm position accuracy and <10 ms latency, supporting real-time position feedback for closed-loop control.",
+              "reason": "Removed 'in indoor environments' for brevity; added 'the' for grammar; no factual change."
+            }
+          ]
+        },
+        {
+          "source_id": "LIFT-11",
+          "text": "Applied control system design and experimental validation to establish an OptiTrack-based real-time feedback pose control system, enabling sub-centimeter trajectory tracking and iterative controller refinement.",
+          "why_present": true,
+          "how_present": true,
+          "transferable": false,
+          "impact_gap": false,
+          "edits": []
+        }
+      ]
+    },
+    {
+      "project": "ROBOCON",
+      "bullets": [
+        {
+          "source_id": "ROBOCON-15",
+          "text": "Managed three interdisciplinary teams over a six-month project, overseeing a $20,000 budget; delivered two autonomous ring-handling systems and one joystick-controlled quadruped within all milestones.",
+          "why_present": true,
+          "how_present": true,
+          "transferable": false,
+          "impact_gap": false,
+          "edits": []
+        },
+        {
+          "source_id": "ROBOCON-9",
+          "text": "Developed embedded C firmware for STM32F407, enabling CAN-based motor control, BLE remote communication, and PID position control with +/-2 mm tracking error for an omnidirectional mobile robot.",
+          "why_present": true,
+          "how_present": true,
+          "transferable": false,
+          "impact_gap": false,
+          "edits": []
+        },
+        {
+          "source_id": "ROBOCON-10",
+          "text": "Designed a modular PID-based navigation system on STM32 with inverse kinematics and yaw compensation, achieving omnidirectional motion and +/-0.1% global localization accuracy.",
+          "why_present": true,
+          "how_present": true,
+          "transferable": false,
+          "impact_gap": false,
+          "edits": []
+        },
+        {
+          "source_id": "ROBOCON-11",
+          "text": "Implemented a custom UART protocol with headers, footers, and float unpacking; used DMA + interrupts for non-blocking 100 Hz updates of 6-DoF data, with <0.2% error rate.",
+          "why_present": true,
+          "how_present": true,
+          "transferable": false,
+          "impact_gap": false,
+          "edits": []
+        },
+        {
+          "source_id": "ROBOCON-7",
+          "text": "Modularized the robot into gimbal, power, launcher, and chassis to achieve independent functionality and decoupled operation, incorporating modular interfaces and redundancy to improve system stability and debuggability.",
+          "why_present": true,
+          "how_present": true,
+          "transferable": false,
+          "impact_gap": true,
+          "edits": []
+        }
+      ]
+    },
+    {
+      "project": "Crane",
+      "bullets": [
+        {
+          "source_id": "Crane-3",
+          "text": "Designed a compact, low-power crane system with ESP32-based Wi-Fi remote control, enabling low-latency communication and autonomous coordination across multiple devices, achieving over 95% task repeatability.",
+          "why_present": true,
+          "how_present": true,
+          "transferable": false,
+          "impact_gap": false,
+          "edits": []
+        },
+        {
+          "source_id": "Crane-4",
+          "text": "Independently developed an STM32-based control system using fuzzy PID algorithms for closed-loop stepper motor control, achieving +/-1 mm positioning accuracy.",
+          "why_present": true,
+          "how_present": true,
+          "transferable": false,
+          "impact_gap": false,
+          "edits": []
+        },
+        {
+          "source_id": "Crane-9",
+          "text": "Consolidated five functional boards into a single 4-layer PCB with KiCad, integrating control, power, and communication modules; reduced overall footprint by 40% and verified signal integrity via 100-MHz oscilloscope.",
+          "why_present": true,
+          "how_present": true,
+          "transferable": false,
+          "impact_gap": false,
+          "edits": []
+        },
+        {
+          "source_id": "Crane-8",
+          "text": "Collaborated with industry engineers to migrate fuzzy PID logic and the remote control interface to a PLC platform, enabling compatibility with standard industrial automation workflows.",
+          "why_present": true,
+          "how_present": true,
+          "transferable": false,
+          "impact_gap": false,
+          "edits": []
+        }
+      ]
+    }
+  ],
+  "rejected_overlaps": [
+    {
+      "bullet": "[1] Led a 5-member cross-functional team to develop a hybrid flying-driving robot platform, delivering a fully functional prototype within 10 weeks.",
+      "reason": "Overlap tag [1] with LIFT-6. LIFT-6 ('achieving 100% integration') emphasizes integration — stronger match for JD's hardware-software integration theme.",
+      "kept_instead": "LIFT-6: Led a 5-member cross-functional team...achieving 100% integration of mobility and flight subsystems."
+    },
+    {
+      "bullet": "[2] Oversaw part sourcing, assembly, testing and iteration under DFA principles; delivered two autonomous launch platforms and one joystick-controlled quadruped within strict fabrication deadlines.",
+      "reason": "Overlap tag [2] with ROBOCON-1, ROBOCON-8, ROBOCON-15. ROBOCON-15 (budget + milestones) is the strongest leadership bullet; ROBOCON-1 (design of 3 robots) is descriptive but less actionable than ROBOCON-15.",
+      "kept_instead": "ROBOCON-15: Managed three interdisciplinary teams over a six-month project..."
+    },
+    {
+      "bullet": "[2] Led mechanical design of 3 robots for a national robotics competition with 80 teams...",
+      "reason": "Overlap tag [2]. ROBOCON-15 covers leadership scope more completely with budget and timeline.",
+      "kept_instead": "ROBOCON-15"
+    },
+    {
+      "bullet": "[2] Led end-to-end mechanical development, covering CAD design, BOM planning, component selection, and supplier coordination...",
+      "reason": "Overlap tag [2]. Redundant with ROBOCON-15.",
+      "kept_instead": "ROBOCON-15"
+    },
+    {
+      "bullet": "[4] Built and programmed a compact mechatronic crane system capable of autonomous object retrieval and precise stacking, achieving a task repeatability of more than 95%.",
+      "reason": "Overlap tag [4] with Crane-2 and Crane-3. Crane-3 (ESP32 Wi-Fi, low-latency communication) is the strongest match for JD's real-time communication and integration themes.",
+      "kept_instead": "Crane-3"
+    },
+    {
+      "bullet": "[4] Developed a compact crane prototype scaled from real industrial models...",
+      "reason": "Overlap tag [4]. Crane-3 is stronger.",
+      "kept_instead": "Crane-3"
+    },
+    {
+      "bullet": "[5] Enhanced the crane structure in SolidWorks with FEA. Independently constructed STM32-based control circuitry and PCB with a stable fuzzy PID control system.",
+      "reason": "Overlap tag [5] with Crane-4 and Crane-8. Crane-4 (fuzzy PID, +/-1mm accuracy) is more specific on control systems; Crane-8 (PLC migration) covers industrial workflows.",
+      "kept_instead": "Crane-4 and Crane-8"
+    },
+    {
+      "bullet": "[7] Handled mechanical design via SolidWorks and Autodesk Fusion, used weighted decision matrices to select the best prototype...",
+      "reason": "Overlap tag [7] with LIFT-1. Neither was selected — LIFT bullets were chosen for ROS2, motion capture, and controls relevance instead.",
+      "kept_instead": "Neither selected; other LIFT bullets are stronger JD matches."
+    }
+  ],
+  "unmatched_jd_gaps": [
+    "MoveIt-based manipulation pipelines — no direct experience with MoveIt in bullet database",
+    "AI-powered perception (computer vision, deep learning for perception) — no direct bullet",
+    "CI/CD automation — no direct bullet",
+    "Simulation environments / HIL testing — ROS2 simulator integration is partial match only",
+    "Mapping and SLAM — no direct bullet"
+  ],
+  "flags_for_user": [
+    "No MoveIt experience in database — significant JD gap",
+    "No AI/ML perception experience — JD mentions AI-powered perception",
+    "No CI/CD automation experience in database",
+    "impact_gap: Xiaoxian-7 (sensor integration) lacks quantitative result",
+    "impact_gap: ROBOCON-7 (modularization) lacks quantitative result"
+  ],
+  "trim_priority": [
+    {
+      "rank": 1,
+      "project": "LIFT",
+      "source_id": "LIFT-5",
+      "text": "Developed a ROS2-based robotic system integrating a simulator and MPC controller, enabling prec...",
+      "removable": false
+    },
+    {
+      "rank": 2,
+      "project": "Xiaoxian",
+      "source_id": "Xiaoxian-2",
+      "text": "Developed control programs for a six-axis CRP2 robotic arm using embedded C and ladder logic...",
+      "removable": false
+    },
+    {
+      "rank": 3,
+      "project": "ROBOCON",
+      "source_id": "ROBOCON-9",
+      "text": "Developed embedded C firmware for STM32F407, enabling CAN-based motor control, BLE remote comm...",
+      "removable": false
+    },
+    {
+      "rank": 4,
+      "project": "LIFT",
+      "source_id": "LIFT-4",
+      "text": "Integrated OptiTrack motion capture system with the robotic platform, achieving <1 mm position...",
+      "removable": true
+    },
+    {
+      "rank": 5,
+      "project": "LIFT",
+      "source_id": "LIFT-6",
+      "text": "Led a 5-member cross-functional team to develop a hybrid flying-driving robot platform, achie...",
+      "removable": true
+    },
+    {
+      "rank": 6,
+      "project": "Xiaoxian",
+      "source_id": "Xiaoxian-8",
+      "text": "Reviewed and debugged Siemens S7-1200 PLC programs submitted by a third-party integrator, veri...",
+      "removable": true
+    },
+    {
+      "rank": 7,
+      "project": "Crane",
+      "source_id": "Crane-8",
+      "text": "Collaborated with industry engineers to migrate fuzzy PID logic and the remote control interfac...",
+      "removable": true
+    },
+    {
+      "rank": 8,
+      "project": "ROBOCON",
+      "source_id": "ROBOCON-10",
+      "text": "Designed a modular PID-based navigation system on STM32 with inverse kinematics and yaw compen...",
+      "removable": true
+    },
+    {
+      "rank": 9,
+      "project": "Crane",
+      "source_id": "Crane-3",
+      "text": "Designed a compact, low-power crane system with ESP32-based Wi-Fi remote control, enabling lo...",
+      "removable": false
+    },
+    {
+      "rank": 10,
+      "project": "Xiaoxian",
+      "source_id": "Xiaoxian-1",
+      "text": "Designed an STM32F103-based gateway to enable Modbus RTU communication between the PC and robo...",
+      "removable": true
+    },
+    {
+      "rank": 11,
+      "project": "Crane",
+      "source_id": "Crane-4",
+      "text": "Independently developed an STM32-based control system using fuzzy PID algorithms for closed-lo...",
+      "removable": true
+    },
+    {
+      "rank": 12,
+      "project": "ROBOCON",
+      "source_id": "ROBOCON-11",
+      "text": "Implemented a custom UART protocol with headers, footers, and float unpacking; used DMA + inte...",
+      "removable": true
+    },
+    {
+      "rank": 13,
+      "project": "Crane",
+      "source_id": "Crane-9",
+      "text": "Consolidated five functional boards into a single 4-layer PCB with KiCad, integrating control,...",
+      "removable": true
+    },
+    {
+      "rank": 14,
+      "project": "ROBOCON",
+      "source_id": "ROBOCON-15",
+      "text": "Managed three interdisciplinary teams over a six-month project, overseeing a $20,000 budget; d...",
+      "removable": true
+    },
+    {
+      "rank": 15,
+      "project": "LIFT",
+      "source_id": "LIFT-11",
+      "text": "Applied control system design and experimental validation to establish an OptiTrack-based real-...",
+      "removable": true
+    },
+    {
+      "rank": 16,
+      "project": "Xiaoxian",
+      "source_id": "Xiaoxian-7",
+      "text": "Integrated sensors including IR, microswitches, and pressure transducers to monitor system stat...",
+      "removable": true
+    },
+    {
+      "rank": 17,
+      "project": "ROBOCON",
+      "source_id": "ROBOCON-7",
+      "text": "Modularized the robot into gimbal, power, launcher, and chassis to achieve independent function...",
+      "removable": true
+    }
+  ]
+}

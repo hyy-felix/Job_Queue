@@ -1,0 +1,17 @@
+{
+  "status": "form_filled",
+  "screenshot_path": null,
+  "url_navigated": "https://www.linkedin.com/jobs/collections/top-applicant/?currentJobId=4387664968",
+  "fields_filled": [
+    "Email",
+    "Phone",
+    "Resume"
+  ],
+  "fields_failed": [
+    "Additional Questions"
+  ],
+  "resume_uploaded": true,
+  "error": null,
+  "llm_used": "Google AI gemini-2.0-flash",
+  "timestamp": "2026-03-26T13:06:36.788959+00:00"
+}

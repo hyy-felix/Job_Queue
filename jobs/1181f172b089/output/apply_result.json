@@ -1,0 +1,11 @@
+{
+  "status": "failed",
+  "screenshot_path": null,
+  "url_navigated": "https://www.linkedin.com/jobs/collections/top-applicant/?currentJobId=4389598916",
+  "fields_filled": [],
+  "fields_failed": [],
+  "resume_uploaded": false,
+  "error": "Agent returned non-JSON: The application process restarted multiple times after uploading the resume and cover letter. I am unable to complete the application form. Please send your resume and cover letter to careers@fireloop",
+  "llm_used": "Google AI gemini-2.0-flash",
+  "timestamp": "2026-03-26T13:09:07.552896+00:00"
+}

@@ -72,6 +72,10 @@ python3 -m pytest tests/ -v
 | `JQ_WORK_DIR` | (hardcoded path) | Path to Claude workflow directory |
 | `JQ_EXTRACTION_TIMEOUT` | 600 | Extraction timeout in seconds |
 | `JQ_GENERATION_TIMEOUT` | 1800 | Generation timeout in seconds |
+| `JQ_AUTO_SUBMIT` | false | Auto-click submit after filling form |
+| `JQ_GMAIL_APP_PASSWORD` | (empty) | Gmail App Password for email notifications. If unset, notifications are silently skipped. |
+| `JQ_GMAIL_USER` | (from profile.json) | Gmail sender address. Falls back to profile.json email field. |
+| `JQ_NOTIFICATION_EMAIL` | (from JQ_GMAIL_USER) | Recipient email for notifications. |
 
 ## Testing
 

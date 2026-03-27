@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "job_id": "43407f72e63e",
+  "source_url": "https://www.linkedin.com/jobs/collections/top-applicant/?currentJobId=4387664968",
+  "status": "applied",
+  "created_at": "2026-03-26T12:06:15.041076Z",
+  "updated_at": "2026-03-26T13:08:25.872186Z",
+  "version": 16,
+  "extraction": {
+    "role_title": "Sr. Robotics Software Engineer",
+    "company_name": "Wilder Systems Robots",
+    "salary": null,
+    "location": "Oklahoma City, OK",
+    "job_description": "About Wilder Systems\nWilder Systems, based in Austin, TX, is an industrial services company pioneering Robots-as-a-Service to automate complex aerospace manufacturing and maintenance processes for commercial and defense sectors. We design, build, and deploy modular autonomous robotic systems—spanning drilling, fastening, inspection, defastening, sanding, blasting, and aircraft-washing platforms.\nOur rugged, mobile robots integrate seamlessly into existing facilities, combining AI-powered perception real-time data tracing , and advanced motion control to deliver precision, repeatability, and safety at scale—driving the aerospace industry toward a lights-out manufacturing future\nKey Responsibilities\nLead the development of advanced robotic and mobile manipulator software systems\nArchitect, design, and implement the real-time software stack for industrial robots, including motion control algorithms, kinematics, trajectory planning, and MoveIt-based manipulation pipelines in C++ Python , and ROS 2\nBuild and refine autonomy features such as perception, localization, mapping, path planning, sensor fusion, and intelligent task execution for unstructured real-world environments\nMentor junior engineers and establish best practices for scalable, reliable, and high-performance robot software.\nDrive full-stack hardware–software integration\nLead integration efforts across mechanical, electrical, and controls teams to ensure precise synchronization of sensors, actuators, PLCs, and industrial controllers.\nOversee system calibration, network synchronization, and timing optimization for low-latency closed-loop performance.\nGuide the design of reusable drivers, middleware layers, and communication interfaces.\nEstablish robust testing, validation, and performance workflows\nDevelop and maintain simulation environments, hardware-in-the-loop (HIL) testing, and real-time telemetry pipelines.\nUse metrics, logging, and data analytics to quantify system performance (e.g., precision, throughput, uptime) and validate against customer KPIs.\nImplement root-cause analysis and system-level debugging for fielded robotic systems.\nChampion software quality and delivery excellence\nSet standards for code quality, testing, and CI/CD automation across multiple robotic programs.\nPerform design and code reviews, refactor legacy systems, and enforce maintainability and documentation standards.\nCollaborate with operations teams to ensure successful deployment and lifecycle support of robotic systems in production environments.\nQualifications\nBachelor’s or Master’s degree in Computer Science, Robotics, Electrical/Mechanical Engineering , or a related field (Ph.D. preferred).",
+    "scraped_at": "2026-03-26T12:06:57.338500Z"
+  },
+  "generation": {
+    "output_folder": "/Users/felixhyy/Desktop/work/applications/03262026/Wilder_Systems_Sr_Robotics_Software_Engineer",
+    "completed_at": "2026-03-26T12:29:37.351564Z"
+  },
+  "apply": {
+    "screenshot_path": null,
+    "result_path": "/Users/felixhyy/conductor/workspaces/Job_Queue/valencia/jobs/43407f72e63e/output/apply_result.json",
+    "form_filled": true,
+    "resume_uploaded": true,
+    "applied_at": "2026-03-26T13:08:19.283425Z",
+    "fields_filled": [
+      "Email",
+      "Phone",
+      "Resume"
+    ],
+    "notification_sent_at": "2026-03-26T13:08:25.870555Z"
+  },
+  "error": {
+    "last_error": null,
+    "retry_count": 0
+  },
+  "worker": {
+    "pid": null,
+    "pgid": null
+  }
+}

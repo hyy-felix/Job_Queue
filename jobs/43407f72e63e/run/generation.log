@@ -1,0 +1,8 @@
+All 3 QA issues fixed:
+- **CL-1**: Removed "at UC Berkeley" (unsupported institutional affiliation)
+- **CL-2**: Separated the two LIFT results into independent statements, removing the false causal chain
+- **CL-3**: Changed "architected" to "developed" (matching source verb)
+
+Cover letter PDF recompiled successfully. The application package is now fully QA-clean.
+
+OUTPUT_PATH: /Users/felixhyy/Desktop/work/applications/03262026/Wilder_Systems_Sr_Robotics_Software_Engineer

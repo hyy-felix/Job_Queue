@@ -30,6 +30,7 @@ from models import (
     is_workflow_terminal,
     IN_FLIGHT_STATES,
 )
+from notifications import send_apply_notification
 from persistence import JsonJobStore, JobNotFoundError
 
 logger = logging.getLogger("job_queue")
@@ -725,6 +726,9 @@ class Orchestrator:
             str(output_dir),
             str(config.PROFILE_PATH),
         ]
+        # Auto-submit: click the submit button after filling
+        if config.AUTO_SUBMIT:
+            cmd.append("--submit")
         # Attach to existing Chrome via CDP if configured
         if config.CDP_URL:
             cmd.extend(["--cdp-url", config.CDP_URL])
@@ -796,6 +800,21 @@ class Orchestrator:
                     job.apply.applied_at = datetime.now(timezone.utc)
                     job = self._transition(job, JobStatus.APPLIED)
                     logger.info("Apply succeeded for job %s", job_id)
+
+                    # Send email notification (idempotent, best-effort)
+                    if job.apply.notification_sent_at is None:
+                        try:
+                            sent = await asyncio.wait_for(
+                                send_apply_notification(job), timeout=60
+                            )
+                            if sent:
+                                job.apply.notification_sent_at = datetime.now(timezone.utc)
+                                self.store.update_job(job)
+                                logger.info("Email notification sent for job %s", job_id)
+                        except Exception as mail_err:
+                            logger.warning(
+                                "Email notification failed for job %s: %s", job_id, mail_err
+                            )
             else:
                 job.error.last_error = f"Apply subprocess exited {proc.returncode}"
                 job = self._transition(job, JobStatus.APPLY_FAILED)

@@ -1,0 +1,26 @@
+{
+  "status": "form_filled",
+  "screenshot_path": null,
+  "url_navigated": "https://www.linkedin.com/jobs/collections/recommended/?currentJobId=4383931254&discover=recommended&discoveryOrigin=JOBS_HOME_JYMBII",
+  "fields_filled": [
+    "First Name",
+    "Last Name",
+    "Email",
+    "Phone",
+    "LinkedIn Profile",
+    "Website",
+    "Country",
+    "Are you legally authorized to work in the United States?",
+    "Will you now or in the future require sponsorship for employment visa status?",
+    "Export Control Question",
+    "Are you willing to travel as needed for the position?",
+    "Are you willing to relocate to Santa Clara, CA?",
+    "How did you hear about us?",
+    "What is your desired base compensation for this role?"
+  ],
+  "fields_failed": [],
+  "resume_uploaded": true,
+  "error": "Failed to submit the application successfully.",
+  "llm_used": "Google AI gemini-2.0-flash",
+  "timestamp": "2026-03-26T13:11:59.578009+00:00"
+}

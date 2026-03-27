@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "job_id": "f9536b407d5e",
+  "source_url": "https://www.linkedin.com/jobs/search-results/?currentJobId=4364520619&eBP=CwEAAAGdKgzsvXSkTpAP93nowTelcm33LrADBf5m-LpHNxOtUHWJvG558QOnu7Nl-eaNR_Ro1zehG-yRDCYw84ihP-ykSgXhRk5CeXw2wOePzSTVp1WoJhbMugk6dkf1dstPbd1N84AmAfnDE8_qdwyCdMpPCeVnS91Y5tCohvSaX5Q2Fo6-_nbnj1Z5TsKp-47QLjpUxHG7UqORrTvlIKULDZDnuebJLwHsUlv2iAPBVvTqvNgT0cU10WoQMPnDVT2mus1REYhj5HG3EyFYk9hEiyWmQQCjev3F0loDJG_hqbq9ZKRC9cHWEBdiwvCnaHeUdL48ADhp8oJN9Xjls_RmHQhuIdG0R6gIA66FaXoc-Wds4s7UK14qxEI-M1S87FQ82yZv2YbJKgsv0EXW50teET3Lwi1YvVLpw4DhxSGM2dWIyUV5zV0M2wTVx2TegiM2vQ2GwCpT71xVUTmDFZ-BszOp5yOdUf2HJ4ys0dpKxtCShwobdq768vxRaT6-LFIBy4O8Z3fatfZlzLTMjztOBjBqgnElger4&refId=mcbtgEfyaGdew2VTeoz0xQ%3D%3D&trackingId=nq38nopGLYE4hzVkoAyzcg%3D%3D&keywords=robotics&origin=SEMANTIC_SEARCH_LANDING_PAGE",
+  "status": "completed",
+  "created_at": "2026-03-26T12:10:46.350654Z",
+  "updated_at": "2026-03-26T13:27:00.600969Z",
+  "version": 15,
+  "extraction": {
+    "role_title": "Senior Robotics Research Engineer",
+    "company_name": "Ambi Robotics",
+    "salary": null,
+    "location": "Berkeley, CA",
+    "job_description": "We are seeking a Senior Robotics Research Engineer to design and develop fundamental new contributions to core robotics libraries and runtime application software for Ambi products, focused on new technology for the future. You will work closely with the Software team and the CTO.\n\nIn this role you will:\n- Independently develop robot applications and capabilities (controls, planning, perception)\n- Lead R&D projects for new AI-driven robot skills, powered by foundation models\n- Contribute to AmbiOS core libraries in areas such as: (a) scalable AI training, algorithms, models, and evaluation, (b) perception modules, (c) image and point cloud processing, (d) motion planning policies, (e) collision checkers\n- Support software deployments to AI-powered robotic systems in production with global brands\n- Modify existing software and configurations for new customers\nYou are a good fit if you have:\n- Eagerness to learn, solve challenging problems, and lead with curiosity\n- A desire for career growth, ownership of your work, and making an impact\n- Excitement about amplifying human potential with state-of-the-art robotics\n- Proficiency in C++, Python, Linux, Git, and, Docker\n- Expertise in motion planning, contact physics, machine learning, and computer vision\n- Experience in the following areas: robotics (3D rigid geometry, kinematics, motion planning), software architecture, state machines, multi-processing, operating systems (must know UNIX), drivers (cameras, sensors, other equipment), and software update systems\n- An MS with four years of experience in commercial robotics software development or equivalent or PhD in a very related subject\n- (BONUS) Experience in Rust\nIn addition to competitive compensation, we offer benefits such as:\n- Health, dental, and vision insurance\n- 401k with 5% matching by Ambi\n- Equity ownership\n- Unlimited PTO\n- Partial WFH\n- Free parking on site at HQ\n- Access to a full gym at HQ\n- Free lunches 2x per week\nPLEASE NOTE:\n- All applications must be submitted online for equitable review. We do not accept or review submissions sent via email, including to individual team members or engineers. This policy ensures a fair and streamlined process for everyone.\nFOR RECRUITERS:\n- This position is direct-hire only; unsolicited resumes from recruiters will not be considered and may result in a fee waiver.",
+    "scraped_at": "2026-03-26T12:12:12.161010Z"
+  },
+  "generation": {
+    "output_folder": "/Users/felixhyy/Desktop/work/applications/03262026/Ambi_Robotics_Senior_Robotics_Research_Engineer",
+    "completed_at": "2026-03-26T13:27:00.600039Z"
+  },
+  "apply": {
+    "screenshot_path": null,
+    "result_path": null,
+    "form_filled": false,
+    "resume_uploaded": false,
+    "applied_at": null,
+    "fields_filled": [],
+    "notification_sent_at": null
+  },
+  "error": {
+    "last_error": null,
+    "retry_count": 1
+  },
+  "worker": {
+    "pid": null,
+    "pgid": null
+  }
+}

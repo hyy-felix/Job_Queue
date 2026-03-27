@@ -1,0 +1,94 @@
+warning: The `tool.uv.dev-dependencies` field (used in `/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/pyproject.toml`) is deprecated and will be removed in a future release; use `dependency-groups.dev` instead
+INFO     [service] Using anonymized telemetry, see https://docs.browser-use.com/development/monitoring/telemetry.
+INFO     [Agent] [34m🎯 Task: 
+    Go to this URL: https://www.linkedin.com/jobs/collections/top-applicant/?currentJobId=4387664968
+
+    IMPORTANT: You MUST read the entire page content carefully before responding.
+    Do NOT return null values without first scrolling through and reading the page.
+
+    After reading the full page, extract these fields:
+    1. role_title: The exact job title shown on the page
+    2. company_name: The company name
+    3. salary: Salary or compensation info (null ONLY if truly not listed anywhere)
+    4. location: Job location (city, state, remote, etc.)
+    5. job_description: Copy the COMPLETE job description text from the page.
+       Include ALL sections: overview, responsibilities, requirements,
+       qualifications, benefits. This must be comprehensive — multiple paragraphs.
+       Do NOT summarize. Copy the actual text from the page.
+
+    If the page shows a 404 error or the job posting is not found, set
+    job_description to a message explaining the page was not found.
+
+    Return ONLY a valid JSON object with these exact keys:
+    role_title, company_name, salary, location, job_description
+
+    No markdown formatting. No explanation. Just the JSON.
+    [0m
+INFO     [Agent] 📦 Newer version available: 0.12.5 (current: 0.12.3). Upgrade with: uv add browser-use==0.12.5
+INFO     [Agent] Starting a browser-use agent with version 0.12.3, with provider=google and model=gemini-2.0-flash
+INFO     [Agent]   ▶️   [34mnavigate[0m: [35murl[0m: https://www.linkedin.com/jobs/collections/top-applicant/?currentJobId=4387664968, [35mnew_tab[0m: True
+INFO     [tools] 🔗  Opened new tab with url https://www.linkedin.com/jobs/collections/top-applicant/?currentJobId=4387664968
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 1:
+INFO     [Agent]   [32m👍 Eval: Successfully navigated to the URL. Verdict: Success[0m
+INFO     [Agent]   🧠 Memory: Navigated to the LinkedIn job posting page. Will scroll down to read the entire page content and extract the job details.
+INFO     [Agent]   [34m🎯 Next goal: Scroll down to the end of the page to ensure all content is loaded and visible, then extract the job details.[0m
+INFO     [Agent]   ▶️   [34mscroll[0m: [35mdown[0m: True, [35mpages[0m: 10.0, [35mindex[0m: None
+INFO     [tools] 🔍 Scrolled down 10.0 pages
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 2:
+INFO     [Agent]   [32m👍 Eval: Successfully scrolled down the page. Verdict: Success[0m
+INFO     [Agent]   🧠 Memory: Scrolled down the page to load all the content. Now I need to extract the job details as requested by the user.
+INFO     [Agent]   [34m🎯 Next goal: Extract the job details from the page and return a JSON object with the requested fields.[0m
+INFO     [Agent]   ▶️   [34msearch_page[0m: [35mpattern[0m: Sr. Robotics Software Engineer, [35mregex[0m: False, [35mcase_sensitive[0m: False, [35mcontext_chars[0m: 500, [35mcss_scope[0m: None, [35mmax_results[0m: 1
+INFO     [tools] 🔎 Searched page for "Sr. Robotics Software Engineer": 5 matches found.
+INFO     [Agent] 📋 Plan updated with 0 steps
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 3:
+INFO     [Agent]   [32m👍 Eval: Successfully scrolled down the page and searched for the job title. Verdict: Success[0m
+INFO     [Agent]   🧠 Memory: Scrolled down the page and found the job posting. Now I need to extract the job details.
+INFO     [Agent]   [34m🎯 Next goal: Click on the job posting to view the details and extract the required information.[0m
+INFO     [Agent]   ▶️   [34mclick[0m: [35mindex[0m: 214
+INFO     [tools] 🖱️ Clicked a "Sr. Robotics Software Engineer" id=ember54
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 4:
+INFO     [Agent]   [32m👍 Eval: Successfully clicked on the job posting to view the details. Verdict: Success[0m
+INFO     [Agent]   🧠 Memory: Navigated to the LinkedIn job posting page and clicked on the job to view the details. Now I need to extract the job details as requested by the user.
+INFO     [Agent]   [34m🎯 Next goal: Extract the job details from the page and return a JSON object with the requested fields.[0m
+INFO     [Agent]   ▶️   [34mdone[0m: [35mtext[0m: {
+  "role_title": "Sr. Robotics Software Engineer",
+  "company_name": "Wilder Systems Robots",
+  "salary": null,
+  "location": "Oklahoma City, OK",
+  ..., [35msuccess[0m: True, [35mfiles_to_display[0m: None
+INFO     [Agent] 📋 Plan updated with 0 steps
+INFO     [Agent] 
+📄 [32m Final Result:[0m 
+{
+  "role_title": "Sr. Robotics Software Engineer",
+  "company_name": "Wilder Systems Robots",
+  "salary": null,
+  "location": "Oklahoma City, OK",
+  "job_description": "About Wilder Systems\nWilder Systems, based in Austin, TX, is an industrial services company pioneering Robots-as-a-Service to automate complex aerospace manufacturing and maintenance processes for commercial and defense sectors. We design, build, and deploy modular autonomous robotic systems—spanning drilling, fastening, inspection, defastening, sanding, blasting, and aircraft-washing platforms.\nOur rugged, mobile robots integrate seamlessly into existing facilities, combining AI-powered perception real-time data tracing , and advanced motion control to deliver precision, repeatability, and safety at scale—driving the aerospace industry toward a lights-out manufacturing future\nKey Responsibilities\nLead the development of advanced robotic and mobile manipulator software systems\nArchitect, design, and implement the real-time software stack for industrial robots, including motion control algorithms, kinematics, trajectory planning, and MoveIt-based manipulation pipelines in C++ Python , and ROS 2\nBuild and refine autonomy features such as perception, localization, mapping, path planning, sensor fusion, and intelligent task execution for unstructured real-world environments\nMentor junior engineers and establish best practices for scalable, reliable, and high-performance robot software.\nDrive full-stack hardware–software integration\nLead integration efforts across mechanical, electrical, and controls teams to ensure precise synchronization of sensors, actuators, PLCs, and industrial controllers.\nOversee system calibration, network synchronization, and timing optimization for low-latency closed-loop performance.\nGuide the design of reusable drivers, middleware layers, and communication interfaces.\nEstablish robust testing, validation, and performance workflows\nDevelop and maintain simulation environments, hardware-in-the-loop (HIL) testing, and real-time telemetry pipelines.\nUse metrics, logging, and data analytics to quantify system performance (e.g., precision, throughput, uptime) and validate against customer KPIs.\nImplement root-cause analysis and system-level debugging for fielded robotic systems.\nChampion software quality and delivery excellence\nSet standards for code quality, testing, and CI/CD automation across multiple robotic programs.\nPerform design and code reviews, refactor legacy systems, and enforce maintainability and documentation standards.\nCollaborate with operations teams to ensure successful deployment and lifecycle support of robotic systems in production environments.\nQualifications\nBachelor’s or Master’s degree in Computer Science, Robotics, Electrical/Mechanical Engineering , or a related field (Ph.D. preferred)."
+}
+
+
+INFO     [Agent] ✅ Task completed successfully
+WARNING  [BrowserSession] 🔌 CDP WebSocket message handler exited unexpectedly (connection closed)
+WARNING  [BrowserSession] 🔄 WebSocket reconnection attempt 1/3...
+an error occurred during closing of asynchronous generator <async_generator object Connection.send_context at 0x112443120>
+asyncgen: <async_generator object Connection.send_context at 0x112443120>
+RuntimeError: aclose(): asynchronous generator is already running
+INFO     [BrowserSession] [SessionManager] Cleared all owned data (targets, sessions, mappings)
+WARNING  [BrowserSession] 🔄 Reconnection attempt 1 failed: RuntimeError: Executor shutdown has been called
+Extracting job data from: https://www.linkedin.com/jobs/collections/top-applicant/?currentJobId=4387664968
+CDP mode: connecting to http://localhost:9222
+Using LLM: Google AI gemini-2.0-flash
+Connecting to existing browser at: http://localhost:9222
+Extraction complete: /Users/felixhyy/conductor/workspaces/Job_Queue/valencia/jobs/43407f72e63e/input/job.json
+Task was destroyed but it is pending!
+task: <Task pending name='Task-1618' coro=<BrowserSession._auto_reconnect() done, defined at /Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/browser_use/browser/session.py:2090> wait_for=<Future pending cb=[Task.task_wakeup()]>>

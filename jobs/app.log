@@ -120,3 +120,91 @@
 2026-03-26 15:41:45,825 [job_queue] INFO: Apply started for job 0076a1054540: url=https://www.linkedin.com/jobs/collections/top-applicant/?currentJobId=4343593147, cdp=http://localhost:9222
 2026-03-26 15:45:12,674 [job_queue] INFO: Job 0076a1054540: applying → applied
 2026-03-26 15:45:12,674 [job_queue] INFO: Apply succeeded for job 0076a1054540
+2026-03-26 19:26:52,185 [job_queue] INFO: Running crash recovery...
+2026-03-26 19:26:52,188 [job_queue] INFO: Crash recovery complete
+2026-03-26 19:26:52,188 [job_queue] INFO: Generation queue loop started
+2026-03-26 19:51:21,502 [job_queue] INFO: Job 863cb9693d44: completed → apply_queued
+2026-03-26 19:51:21,505 [job_queue] INFO: Job 863cb9693d44: apply_queued → applying
+2026-03-26 19:51:21,505 [job_queue] INFO: Apply started for job 863cb9693d44: url=https://www.linkedin.com/jobs/collections/top-applicant/?currentJobId=4389288487, cdp=http://localhost:9222
+2026-03-26 19:52:29,873 [job_queue] INFO: Job 863cb9693d44: applying → applied
+2026-03-26 19:52:29,873 [job_queue] INFO: Apply succeeded for job 863cb9693d44
+2026-03-26 20:06:15,045 [job_queue] INFO: Job 43407f72e63e: submitted → extracting
+2026-03-26 20:06:15,045 [job_queue] INFO: Using CDP browser at http://localhost:9222 for job 43407f72e63e
+2026-03-26 20:06:48,176 [job_queue] INFO: Job 1181f172b089: submitted → extracting
+2026-03-26 20:06:48,176 [job_queue] INFO: Using CDP browser at http://localhost:9222 for job 1181f172b089
+2026-03-26 20:06:57,338 [job_queue] INFO: Job 43407f72e63e: extracting → ready_for_review
+2026-03-26 20:07:24,854 [job_queue] INFO: Job 1181f172b089: extracting → ready_for_review
+2026-03-26 20:07:45,816 [job_queue] INFO: Job f56a5fccc6c8: submitted → extracting
+2026-03-26 20:07:45,816 [job_queue] INFO: Using CDP browser at http://localhost:9222 for job f56a5fccc6c8
+2026-03-26 20:09:59,485 [job_queue] INFO: Job 494b68e02d13: submitted → extracting
+2026-03-26 20:09:59,486 [job_queue] INFO: Using CDP browser at http://localhost:9222 for job 494b68e02d13
+2026-03-26 20:10:30,106 [job_queue] INFO: Job d310d90dea5f: submitted → extracting
+2026-03-26 20:10:30,107 [job_queue] INFO: Using CDP browser at http://localhost:9222 for job d310d90dea5f
+2026-03-26 20:10:35,391 [job_queue] INFO: Job 494b68e02d13: extracting → ready_for_review
+2026-03-26 20:10:46,352 [job_queue] INFO: Job f9536b407d5e: submitted → extracting
+2026-03-26 20:10:46,353 [job_queue] INFO: Using CDP browser at http://localhost:9222 for job f9536b407d5e
+2026-03-26 20:11:04,718 [asyncio] ERROR: Task exception was never retrieved
+future: <Task finished name='Task-231' coro=<Orchestrator._run_extraction() done, defined at /Users/felixhyy/conductor/workspaces/Job_Queue/valencia/orchestrator.py:172> exception=RuntimeError("Task <Task pending name='Task-231' coro=<Orchestrator._run_extraction() running at /Users/felixhyy/conductor/workspaces/Job_Queue/valencia/orchestrator.py:173>> got Future <Future pending> attached to a different loop")>
+Traceback (most recent call last):
+  File "/Users/felixhyy/conductor/workspaces/Job_Queue/valencia/orchestrator.py", line 173, in _run_extraction
+    async with self._extraction_semaphore:
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/asyncio/locks.py", line 14, in __aenter__
+    await self.acquire()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/asyncio/locks.py", line 413, in acquire
+    await fut
+RuntimeError: Task <Task pending name='Task-231' coro=<Orchestrator._run_extraction() running at /Users/felixhyy/conductor/workspaces/Job_Queue/valencia/orchestrator.py:173>> got Future <Future pending> attached to a different loop
+2026-03-26 20:11:20,837 [job_queue] INFO: Job f56a5fccc6c8: extracting → ready_for_review
+2026-03-26 20:11:25,314 [job_queue] INFO: Job 43407f72e63e: ready_for_review → queued
+2026-03-26 20:11:25,632 [job_queue] INFO: Job 43407f72e63e: queued → generating
+2026-03-26 20:11:44,734 [job_queue] INFO: Job 1181f172b089: ready_for_review → queued
+2026-03-26 20:11:50,642 [job_queue] INFO: Job f56a5fccc6c8: ready_for_review → queued
+2026-03-26 20:12:12,161 [job_queue] INFO: Job f9536b407d5e: extracting → ready_for_review
+2026-03-26 20:12:22,515 [job_queue] INFO: Job 494b68e02d13: ready_for_review → queued
+2026-03-26 20:12:41,138 [job_queue] INFO: Job 494b68e02d13: queued → cancelled
+2026-03-26 20:12:43,462 [job_queue] INFO: Job f9536b407d5e: ready_for_review → queued
+2026-03-26 20:19:15,629 [job_queue] INFO: Job d310d90dea5f: extracting → ready_for_review
+2026-03-26 20:27:51,838 [job_queue] INFO: Job d310d90dea5f: ready_for_review → cancelled
+2026-03-26 20:29:37,348 [job_queue] INFO: Output folder from prompt: /Users/felixhyy/Desktop/work/applications/03262026/Wilder_Systems_Sr_Robotics_Software_Engineer
+2026-03-26 20:29:37,351 [job_queue] INFO: Artifacts copied to workspace for job 43407f72e63e
+2026-03-26 20:29:37,352 [job_queue] INFO: Job 43407f72e63e: generating → completed
+2026-03-26 20:29:37,354 [job_queue] INFO: Job 1181f172b089: queued → generating
+2026-03-26 20:37:49,533 [job_queue] INFO: Job c50214aaf89d: apply_failed → apply_queued
+2026-03-26 20:37:49,535 [job_queue] INFO: Job c50214aaf89d: apply_queued → applying
+2026-03-26 20:37:49,536 [job_queue] INFO: Apply started for job c50214aaf89d: url=https://jobs.ashbyhq.com/halobraid/1d392bb0-2093-405f-a34c-e68f7afa3346?utm_source=Linkedin_US_Robotics_Eng, cdp=http://localhost:9222
+2026-03-26 20:39:23,756 [job_queue] INFO: Job c50214aaf89d: applying → apply_failed
+2026-03-26 20:39:23,756 [job_queue] ERROR: Apply failed for job c50214aaf89d: exit code 1
+2026-03-26 20:44:56,917 [job_queue] INFO: Output folder from prompt: /Users/felixhyy/Desktop/work/applications/03262026/Fireloop_AI_Forward_Deployed_Engineer
+2026-03-26 20:44:56,920 [job_queue] INFO: Artifacts copied to workspace for job 1181f172b089
+2026-03-26 20:44:56,921 [job_queue] INFO: Job 1181f172b089: generating → completed
+2026-03-26 20:44:56,923 [job_queue] INFO: Job f56a5fccc6c8: queued → generating
+2026-03-26 21:02:45,980 [job_queue] INFO: Output folder from prompt: /Users/felixhyy/Desktop/work/applications/03262026/Oklo_Mechatronics_Engineer
+2026-03-26 21:02:45,981 [job_queue] WARNING: No compile log evidence found, relying on PDF existence + size check
+2026-03-26 21:02:45,984 [job_queue] INFO: Artifacts copied to workspace for job f56a5fccc6c8
+2026-03-26 21:02:45,984 [job_queue] INFO: Job f56a5fccc6c8: generating → completed
+2026-03-26 21:02:45,989 [job_queue] INFO: Job f9536b407d5e: queued → generating
+2026-03-26 21:04:05,414 [job_queue] INFO: Running crash recovery...
+2026-03-26 21:04:05,415 [job_queue] INFO: Job f9536b407d5e: generating → generation_failed
+2026-03-26 21:04:05,415 [job_queue] INFO: Crash recovery complete
+2026-03-26 21:04:05,415 [job_queue] INFO: Generation queue loop started
+2026-03-26 21:06:07,970 [job_queue] INFO: Job f9536b407d5e: generation_failed → queued
+2026-03-26 21:06:09,673 [job_queue] INFO: Job f9536b407d5e: queued → generating
+2026-03-26 21:06:33,473 [job_queue] INFO: Job 43407f72e63e: completed → apply_queued
+2026-03-26 21:06:33,476 [job_queue] INFO: Job 43407f72e63e: apply_queued → applying
+2026-03-26 21:06:33,476 [job_queue] INFO: Apply started for job 43407f72e63e: url=https://www.linkedin.com/jobs/collections/top-applicant/?currentJobId=4387664968, cdp=http://localhost:9222
+2026-03-26 21:08:19,283 [job_queue] INFO: Job 43407f72e63e: applying → applied
+2026-03-26 21:08:19,283 [job_queue] INFO: Apply succeeded for job 43407f72e63e
+2026-03-26 21:08:25,871 [job_queue] INFO: Email notification sent for job 43407f72e63e
+2026-03-26 21:09:04,150 [job_queue] INFO: Job 1181f172b089: completed → apply_queued
+2026-03-26 21:09:04,152 [job_queue] INFO: Job 1181f172b089: apply_queued → applying
+2026-03-26 21:09:04,152 [job_queue] INFO: Apply started for job 1181f172b089: url=https://www.linkedin.com/jobs/collections/top-applicant/?currentJobId=4389598916, cdp=http://localhost:9222
+2026-03-26 21:10:32,135 [job_queue] INFO: Job 1181f172b089: applying → apply_failed
+2026-03-26 21:10:32,135 [job_queue] ERROR: Apply failed for job 1181f172b089: exit code 1
+2026-03-26 21:11:56,084 [job_queue] INFO: Job f56a5fccc6c8: completed → apply_queued
+2026-03-26 21:11:56,086 [job_queue] INFO: Job f56a5fccc6c8: apply_queued → applying
+2026-03-26 21:11:56,087 [job_queue] INFO: Apply started for job f56a5fccc6c8: url=https://www.linkedin.com/jobs/collections/recommended/?currentJobId=4383931254&discover=recommended&discoveryOrigin=JOBS_HOME_JYMBII, cdp=http://localhost:9222
+2026-03-26 21:15:43,430 [job_queue] INFO: Job f56a5fccc6c8: applying → applied
+2026-03-26 21:15:43,431 [job_queue] INFO: Apply succeeded for job f56a5fccc6c8
+2026-03-26 21:16:13,459 [job_queue] WARNING: Email notification failed for job f56a5fccc6c8: timed out
+2026-03-26 21:27:00,596 [job_queue] INFO: Output folder from prompt: /Users/felixhyy/Desktop/work/applications/03262026/Ambi_Robotics_Senior_Robotics_Research_Engineer
+2026-03-26 21:27:00,599 [job_queue] INFO: Artifacts copied to workspace for job f9536b407d5e
+2026-03-26 21:27:00,600 [job_queue] INFO: Job f9536b407d5e: generating → completed

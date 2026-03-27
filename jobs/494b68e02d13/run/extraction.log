@@ -1,0 +1,83 @@
+warning: The `tool.uv.dev-dependencies` field (used in `/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/pyproject.toml`) is deprecated and will be removed in a future release; use `dependency-groups.dev` instead
+INFO     [service] Using anonymized telemetry, see https://docs.browser-use.com/development/monitoring/telemetry.
+INFO     [Agent] [34m🎯 Task: 
+    Go to this URL: https://www.linkedin.com/jobs/search-results/?currentJobId=4382201791&keywords=robotics&origin=SEMANTIC_SEARCH_LANDING_PAGE
+
+    IMPORTANT: You MUST read the entire page content carefully before responding.
+    Do NOT return null values without first scrolling through and reading the page.
+
+    After reading the full page, extract these fields:
+    1. role_title: The exact job title shown on the page
+    2. company_name: The company name
+    3. salary: Salary or compensation info (null ONLY if truly not listed anywhere)
+    4. location: Job location (city, state, remote, etc.)
+    5. job_description: Copy the COMPLETE job description text from the page.
+       Include ALL sections: overview, responsibilities, requirements,
+       qualifications, benefits. This must be comprehensive — multiple paragraphs.
+       Do NOT summarize. Copy the actual text from the page.
+
+    If the page shows a 404 error or the job posting is not found, set
+    job_description to a message explaining the page was not found.
+
+    Return ONLY a valid JSON object with these exact keys:
+    role_title, company_name, salary, location, job_description
+
+    No markdown formatting. No explanation. Just the JSON.
+    [0m
+INFO     [Agent] 📦 Newer version available: 0.12.5 (current: 0.12.3). Upgrade with: uv add browser-use==0.12.5
+INFO     [Agent] Starting a browser-use agent with version 0.12.3, with provider=google and model=gemini-2.0-flash
+INFO     [Agent]   ▶️   [34mnavigate[0m: [35murl[0m: https://www.linkedin.com/jobs/search-results/?currentJobId=4382201791&keywords=robotics&origin=SEMANTIC_SEARCH_LANDING_PAGE, [35mnew_tab[0m: True
+INFO     [tools] 🔗  Opened new tab with url https://www.linkedin.com/jobs/search-results/?currentJobId=4382201791&keywords=robotics&origin=SEMANTIC_SEARCH_LANDING_PAGE
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 1:
+INFO     [Agent]   [32m👍 Eval: Successfully navigated to the URL. Verdict: Success[0m
+INFO     [Agent]   🧠 Memory: Navigated to the LinkedIn job search results page. Need to extract job details: role_title, company_name, salary, location, and job_description. Need to scroll to load the entire page content first.
+INFO     [Agent]   [34m🎯 Next goal: Scroll down the page to load all content before extracting job details.[0m
+INFO     [Agent]   ▶️   [34mscroll[0m: [35mdown[0m: True, [35mpages[0m: 5.0, [35mindex[0m: 405
+INFO     [tools] 🔍 Scrolled down element 405 5.0 pages
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 2:
+INFO     [Agent]   [32m👍 Eval: Successfully scrolled down the page to load more content. Verdict: Success[0m
+INFO     [Agent]   🧠 Memory: Scrolled down the page to load job postings. Now need to extract details from the first job posting.
+INFO     [Agent]   [34m🎯 Next goal: Click on the first job posting to view the job description and other details.[0m
+INFO     [Agent]   ▶️   [34mclick[0m: [35mindex[0m: 46
+INFO     [tools] 🖱️ Clicked div role=button "Senior Robotics Research Engin..."
+INFO     [Agent] 
+
+INFO     [Agent] 📍 Step 3:
+INFO     [Agent]   [32m👍 Eval: Successfully clicked on the first job posting to view the job description. Verdict: Success[0m
+INFO     [Agent]   🧠 Memory: Clicked on the first job posting to view the job description. Now extracting the job details.
+INFO     [Agent]   [34m🎯 Next goal: Extract the job details and call the done action.[0m
+INFO     [Agent]   ▶️   [34mdone[0m: [35mtext[0m: {
+  "role_title": "Senior Robotics Research Engineer",
+  "company_name": "Ambi Robotics",
+  "salary": null,
+  "location": "Berkeley, CA (On-site)",
+  ..., [35msuccess[0m: True, [35mfiles_to_display[0m: []
+INFO     [Agent] 📋 Plan updated with 0 steps
+INFO     [Agent] 
+📄 [32m Final Result:[0m 
+{
+  "role_title": "Senior Robotics Research Engineer",
+  "company_name": "Ambi Robotics",
+  "salary": null,
+  "location": "Berkeley, CA (On-site)",
+  "job_description": "We are a well-funded startup on a mission to build the nervous system for AI-powered robots in industrial applications.\nFounded by leading robotics researchers, we are growing our dynamic, world-class team to deploy robots at scale. Join us in helping people handle more throughout the supply chain!\nWe are seeking a Senior Robotics Research Engineer to design and develop fundamental new contributions to core robotics libraries and runtime application software for Ambi products, focused on new technology for the future. You will work closely with the Software team and the CTO.\nIn this role you will:\nIndependently develop robot applications and capabilities (controls, planning, perception)\nLead R&D projects for new AI-driven robot skills, powered by foundation models\nContribute to AmbiOS core libraries in areas such as: (a) scalable AI training, algorithms, models, and evaluation, (b) perception modules, (c) image and point cloud processing, (d) motion planning policies, (e) collision checkers\nSupport software deployments to AI-powered robotic systems in production with global brands\nModify existing software and configurations for new customers\nYou are a good fit if you have:\nEagerness to learn, solve challenging problems, and lead with curiosity\nA desire for career growth, ownership of your work, and making an impact\nExcitement about amplifying human potential with state-of-the-art robotics\nProficiency in C++, Python, Linux, Git, and, Docker\nExpertise in motion planning, contact physics, machine learning, and computer vision\nExperience in the following areas: robotics (3D rigid geometry, kinematics, motion planning), software architecture, state machines, multi-processing, operating systems (must know UNIX), drivers (cameras, sensors, other equipment), and software update systems\nAn MS with four years of experience in commercial robotics software development or equivalent or PhD in a very related subject\n(BONUS) Experience in Rust\nIn addition to competitive compensation, we offer benefits such as:\nHealth, dental, and vision insurance\n401k with 5% matching by Ambi\nEquity ownership\nUnlimited PTO\nPartial WFH\nFree parking on site at HQ\nAccess to a full gym at HQ\nFree lunches 2x per week\nPLEASE NOTE:\nAll applications must be submitted online for equitable review. We do not accept or review submissions sent via email, including to individual team members or engineers. This policy ensures a fair and streamlined process for everyone.\nFOR RECRUITERS:\nThis position is direct-hire only; unsolicited resumes from recruiters will not be considered and may result in a fee waiver."
+
+
+INFO     [Agent] ✅ Task completed successfully
+WARNING  [BrowserSession] 🔌 CDP WebSocket message handler exited unexpectedly (connection closed)
+WARNING  [BrowserSession] 🔄 WebSocket reconnection attempt 1/3...
+an error occurred during closing of asynchronous generator <async_generator object Connection.send_context at 0x112343120>
+asyncgen: <async_generator object Connection.send_context at 0x112343120>
+RuntimeError: aclose(): asynchronous generator is already running
+INFO     [BrowserSession] [SessionManager] Cleared all owned data (targets, sessions, mappings)
+Extracting job data from: https://www.linkedin.com/jobs/search-results/?currentJobId=4382201791&keywords=robotics&origin=SEMANTIC_SEARCH_LANDING_PAGE
+CDP mode: connecting to http://localhost:9222
+Using LLM: Google AI gemini-2.0-flash
+Connecting to existing browser at: http://localhost:9222
+Extraction complete: /Users/felixhyy/conductor/workspaces/Job_Queue/valencia/jobs/494b68e02d13/input/job.json
+Task was destroyed but it is pending!
+task: <Task pending name='Task-1229' coro=<BrowserSession._auto_reconnect() done, defined at /Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use/browser_use/browser/session.py:2090> wait_for=<Future pending cb=[BaseSelectorEventLoop._sock_write_done(8, handle=<Handle BaseS....0.1', 9222))>)(), Task.task_wakeup()]>>

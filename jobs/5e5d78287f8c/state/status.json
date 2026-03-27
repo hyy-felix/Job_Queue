@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "job_id": "5e5d78287f8c",
+  "source_url": "https://www.linkedin.com/jobs/search-results/?currentJobId=4288665366&eBP=CwEAAAGdKgzsvS5HguKMbYfK0hEeSnxalgvUnNND7oWuY4THFr2GdBfPT7TCmK1wjr8el2MIh-pEZHOsjIAqFkJ9gM9TkdXs0Nf6fOQS10N7EzX32axXJTMCtNG0xonM14k-u4bWrg4H5klHJOs75TdFL6OwAT-ytgnYrTg6BeFnxPcZf_y64Ld3NIJcPAFMaWmCxjmXMPK4wblS1ye_XicWjhDrEOpFUn6AJbNHQztot88WEfGkRQFC5Umf93cFL-TTTThQT37iQRRXN8fmLNHdZ5bpnQ_d7Oyc1H9fJmCmVa5O-qCtmx7SSD3sjvnVmVQyvO5XR2pJunv7e-N-yUhb_JJd6otPk8Gs7R-NneWEL1Rj_JjNkR_zEcXclYQJ662HfFwMSshyywor0kPTdQoqEm7w6sW0C_0SkZCLhfqDfos8PcPTwT7VGpXLwlJTht5f4JuAgM_zQ4znmr27Pa0lZqznFbJ2i_48q2x6-PHxSKY_LWyeGZrcHCvJ_3fUga4w_bMAMRXgwKHsurg1CMiICA&refId=mcbtgEfyaGdew2VTeoz0xQ%3D%3D&trackingId=L0p8kgxjRsK%2BYJwkJiQwQg%3D%3D&keywords=robotics&origin=SEMANTIC_SEARCH_LANDING_PAGE",
+  "status": "submitted",
+  "created_at": "2026-03-26T12:11:04.716849Z",
+  "updated_at": "2026-03-26T12:11:04.716852Z",
+  "version": 1,
+  "extraction": {
+    "role_title": null,
+    "company_name": null,
+    "salary": null,
+    "location": null,
+    "job_description": null,
+    "scraped_at": null
+  },
+  "generation": {
+    "output_folder": null,
+    "completed_at": null
+  },
+  "apply": {
+    "screenshot_path": null,
+    "result_path": null,
+    "form_filled": false,
+    "resume_uploaded": false,
+    "applied_at": null,
+    "fields_filled": []
+  },
+  "error": {
+    "last_error": null,
+    "retry_count": 0
+  },
+  "worker": {
+    "pid": null,
+    "pgid": null
+  }
+}

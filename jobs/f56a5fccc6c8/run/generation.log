@@ -1,0 +1,8 @@
+All HR review fixes applied:
+- Added "remote-operated" keyword to the Crane bullet (Issue 3)
+- Trimmed Modbus RTU detail from cover letter and added a sentence connecting to Oklo's pyroprocessing mission (Cover letter fix)
+- Issues 1-2 (LIFT lead bullet, Crane FEA no-result) acknowledged but cannot be fixed without fabricating content not in the source database
+
+Final PDFs recompiled and copied. The package is complete.
+
+OUTPUT_PATH: /Users/felixhyy/Desktop/work/applications/03262026/Oklo_Mechatronics_Engineer

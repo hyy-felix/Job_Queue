@@ -158,6 +158,7 @@ class ApplyData(BaseModel):
     resume_uploaded: bool = False               # True if resume upload was confirmed
     applied_at: Optional[datetime] = None       # set by orchestrator at APPLIED transition, not runner
     fields_filled: list[str] = Field(default_factory=list)
+    notification_sent_at: Optional[datetime] = None  # set after email notification sent
 
 
 class ErrorInfo(BaseModel):

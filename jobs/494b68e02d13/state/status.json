@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "job_id": "494b68e02d13",
+  "source_url": "https://www.linkedin.com/jobs/search-results/?currentJobId=4382201791&keywords=robotics&origin=SEMANTIC_SEARCH_LANDING_PAGE",
+  "status": "cancelled",
+  "created_at": "2026-03-26T12:09:59.479082Z",
+  "updated_at": "2026-03-26T12:12:41.137580Z",
+  "version": 7,
+  "extraction": {
+    "role_title": null,
+    "company_name": null,
+    "salary": null,
+    "location": null,
+    "job_description": "{\n  \"role_title\": \"Senior Robotics Research Engineer\",\n  \"company_name\": \"Ambi Robotics\",\n  \"salary\": null,\n  \"location\": \"Berkeley, CA (On-site)\",\n  \"job_description\": \"We are a well-funded startup on a mission to build the nervous system for AI-powered robots in industrial applications.\\nFounded by leading robotics researchers, we are growing our dynamic, world-class team to deploy robots at scale. Join us in helping people handle more throughout the supply chain!\\nWe are seeking a Senior Robotics Research Engineer to design and develop fundamental new contributions to core robotics libraries and runtime application software for Ambi products, focused on new technology for the future. You will work closely with the Software team and the CTO.\\nIn this role you will:\\nIndependently develop robot applications and capabilities (controls, planning, perception)\\nLead R&D projects for new AI-driven robot skills, powered by foundation models\\nContribute to AmbiOS core libraries in areas such as: (a) scalable AI training, algorithms, models, and evaluation, (b) perception modules, (c) image and point cloud processing, (d) motion planning policies, (e) collision checkers\\nSupport software deployments to AI-powered robotic systems in production with global brands\\nModify existing software and configurations for new customers\\nYou are a good fit if you have:\\nEagerness to learn, solve challenging problems, and lead with curiosity\\nA desire for career growth, ownership of your work, and making an impact\\nExcitement about amplifying human potential with state-of-the-art robotics\\nProficiency in C++, Python, Linux, Git, and, Docker\\nExpertise in motion planning, contact physics, machine learning, and computer vision\\nExperience in the following areas: robotics (3D rigid geometry, kinematics, motion planning), software architecture, state machines, multi-processing, operating systems (must know UNIX), drivers (cameras, sensors, other equipment), and software update systems\\nAn MS with four years of experience in commercial robotics software development or equivalent or PhD in a very related subject\\n(BONUS) Experience in Rust\\nIn addition to competitive compensation, we offer benefits such as:\\nHealth, dental, and vision insurance\\n401k with 5% matching by Ambi\\nEquity ownership\\nUnlimited PTO\\nPartial WFH\\nFree parking on site at HQ\\nAccess to a full gym at HQ\\nFree lunches 2x per week\\nPLEASE NOTE:\\nAll applications must be submitted online for equitable review. We do not accept or review submissions sent via email, including to individual team members or engineers. This policy ensures a fair and streamlined process for everyone.\\nFOR RECRUITERS:\\nThis position is direct-hire only; unsolicited resumes from recruiters will not be considered and may result in a fee waiver.\"",
+    "scraped_at": "2026-03-26T12:10:35.390768Z"
+  },
+  "generation": {
+    "output_folder": null,
+    "completed_at": null
+  },
+  "apply": {
+    "screenshot_path": null,
+    "result_path": null,
+    "form_filled": false,
+    "resume_uploaded": false,
+    "applied_at": null,
+    "fields_filled": []
+  },
+  "error": {
+    "last_error": null,
+    "retry_count": 0
+  },
+  "worker": {
+    "pid": null,
+    "pgid": null
+  }
+}
