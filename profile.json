@@ -1,8 +1,22 @@
 {
-  "full_name": "Yongye(Felix) Hu",
+  "first_name": "Yongye",
+  "last_name": "Hu",
   "email": "hyy.felix@gmail.com",
   "phone": "510-277-7666",
-  "linkedin_url": "https://www.linkedin.com/in/felix-hyy",
+  "age": "24",
+  "US_citizen": false,
+  "sponsorship_needed": true,
+
+  "resume": "Link to resume",
+  "postal_code": "94608",
+  "country": "USA",
+  "city": "Emeryville, CA",
+  "address": "6399 Christie ave",
   "website": "https://felix-hu.space",
-  "location": "Berkeley, CA"
+  "linkedin_url": "https://www.linkedin.com/in/felix-hyy",
+
+  "gender": "Male",
+  "race": "Asian",
+  "Veteran_status": "Not a veteran",
+  "disability_status": "No disability"
 }

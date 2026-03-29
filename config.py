@@ -29,12 +29,12 @@ CLAUDE_CLI = os.environ.get("JQ_CLAUDE_CLI", "claude")
 
 # ── Subprocess settings ───────────────────────────────────────
 EXTRACTION_TIMEOUT_SECONDS = int(os.environ.get("JQ_EXTRACTION_TIMEOUT", "600"))  # 10 min
-GENERATION_TIMEOUT_SECONDS = int(os.environ.get("JQ_GENERATION_TIMEOUT", "1800"))  # 30 min
+GENERATION_TIMEOUT_SECONDS = int(os.environ.get("JQ_GENERATION_TIMEOUT", "3600"))  # 60 min
 MAX_CONCURRENT_EXTRACTIONS = int(os.environ.get("JQ_MAX_EXTRACTIONS", "3"))
 
 # ── Server settings ───────────────────────────────────────────
-HOST = "127.0.0.1"
-PORT = int(os.environ.get("JQ_PORT", "8000"))
+HOST = os.environ.get("JQ_HOST", "127.0.0.1")
+PORT = int(os.environ.get("JQ_PORT", "8080"))
 
 # ── Generation lock ───────────────────────────────────────────
 GENERATION_LOCK_FILE = JOBS_DIR / ".generation_lock"
@@ -96,3 +96,9 @@ TEMP_DIR = Path(tempfile.gettempdir())
 def jd_temp_path(job_id: str) -> Path:
     """Temp file path for job description during generation."""
     return TEMP_DIR / f"jq_{job_id}_jd.txt"
+
+
+# ── Generation contract ──────────────────────────────────
+# Path to apply-jd skill in the work project.  When present, injected via
+# --append-system-prompt-file for deterministic workflow invocation.
+APPLY_JD_SKILL_FILE = WORK_DIR / ".claude" / "skills" / "apply-jd" / "SKILL.md"

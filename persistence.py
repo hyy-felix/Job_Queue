@@ -10,6 +10,7 @@ Writer ownership rule:
 from __future__ import annotations
 
 import json
+import logging
 import os
 import shutil
 import threading
@@ -17,8 +18,10 @@ from abc import ABC, abstractmethod
 from datetime import datetime, timezone
 from pathlib import Path
 
-from models import Job, JobStatus, is_url_closed
+from models import Job, JobStatus, is_url_closed, STATUS_MIGRATION, SCHEMA_VERSION
 import config
+
+logger = logging.getLogger("job_queue.persistence")
 
 
 class JobNotFoundError(Exception):
@@ -111,7 +114,31 @@ class JsonJobStore(JobStore):
         if not path.exists():
             raise JobNotFoundError(f"Job {job_id} not found")
         data = path.read_text(encoding="utf-8")
-        return Job.model_validate_json(data)
+        job = self._migrate_and_parse(data)
+        return job
+
+    @staticmethod
+    def _migrate_and_parse(raw_json: str) -> Job:
+        """Parse job JSON, migrating old status values if needed."""
+        import json as _json
+        raw = _json.loads(raw_json)
+        status_val = raw.get("status", "")
+        migrated = False
+
+        # Migrate old status values to new enum names
+        if status_val in STATUS_MIGRATION:
+            raw["status"] = STATUS_MIGRATION[status_val]
+            migrated = True
+
+        # Bump schema version
+        if raw.get("schema_version", 1) < SCHEMA_VERSION:
+            raw["schema_version"] = SCHEMA_VERSION
+            migrated = True
+
+        if migrated:
+            return Job.model_validate(raw)
+        else:
+            return Job.model_validate_json(raw_json)
 
     def list_jobs(self) -> list[Job]:
         jobs: list[Job] = []
@@ -124,8 +151,9 @@ class JsonJobStore(JobStore):
             if status_path.exists():
                 try:
                     data = status_path.read_text(encoding="utf-8")
-                    jobs.append(Job.model_validate_json(data))
-                except Exception:
+                    jobs.append(self._migrate_and_parse(data))
+                except Exception as exc:
+                    logger.warning("Skipping corrupt casefile %s: %s", entry.name, exc)
                     continue
         jobs.sort(key=lambda j: j.created_at)
         return jobs
@@ -157,8 +185,8 @@ class JsonJobStore(JobStore):
     def find_active_url(self, url: str) -> Job | None:
         """Find a job with this URL that is still active (not url-closed).
 
-        Uses is_url_closed() predicate: COMPLETED, APPLIED, and CANCELLED
-        are all considered "closed" — the URL slot is released for re-submission.
+        Uses is_url_closed() predicate: GENERATED, SCORED, APPLIED, CANCELLED,
+        and MANUAL_APPLY are all considered "closed" — the URL slot is released.
         """
         for job in self.list_jobs():
             if job.source_url == url and not is_url_closed(job.status):

@@ -50,13 +50,13 @@ async def extract(url: str, output_path: str, cdp_url: str = "") -> None:
         if not os.environ.get("GOOGLE_API_KEY") and os.environ.get("GEMINI_API_KEY"):
             os.environ["GOOGLE_API_KEY"] = os.environ["GEMINI_API_KEY"]
         from browser_use.llm import ChatGoogle
-        llm = ChatGoogle(model="gemini-2.0-flash", temperature=0.0)
-        llm_name = "Google AI gemini-2.0-flash"
+        llm = ChatGoogle(model="gemini-3-flash-preview", temperature=0.0)
+        llm_name = "Google AI gemini-3-flash-preview"
 
     elif os.environ.get("GOOGLE_GENAI_USE_VERTEXAI"):
         from browser_use.llm import ChatGoogle
-        llm = ChatGoogle(model="gemini-2.0-flash", temperature=0.0)
-        llm_name = "Vertex AI gemini-2.0-flash"
+        llm = ChatGoogle(model="gemini-3-flash-preview", temperature=0.0)
+        llm_name = "Vertex AI gemini-3-flash-preview"
 
     elif os.environ.get("OPENAI_API_KEY"):
         from browser_use.llm import ChatOpenAI

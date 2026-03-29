@@ -158,11 +158,31 @@ async def retry_job(job_id: str):
         raise HTTPException(status_code=409, detail=str(e))
 
 
+class ScoreRequest(BaseModel):
+    overall_score: float
+    keyword_score: float = 0.0
+    semantic_score: float = 0.0
+    algorithm: str = "jd-match-resume"
+    requirement_scores: list[dict] = []
+
+
+@app.put("/api/jobs/{job_id}/score")
+async def push_score(job_id: str, req: ScoreRequest):
+    """Push a computed score from Resume_Go. Transitions GENERATED → SCORED."""
+    try:
+        job = await orchestrator.receive_score(job_id, req.model_dump())
+        return job.model_dump(mode="json")
+    except JobNotFoundError:
+        raise HTTPException(status_code=404, detail="Job not found")
+    except StateTransitionError as e:
+        raise HTTPException(status_code=409, detail=str(e))
+
+
 @app.post("/api/jobs/{job_id}/apply")
 async def apply_job(job_id: str):
-    """Manually trigger application for a completed job.
+    """Trigger application for a generated/scored job.
 
-    Only allowed from COMPLETED or APPLY_FAILED states.
+    Only allowed from GENERATED, SCORED, or APPLY_FAILED states.
     Does NOT auto-trigger — requires explicit user action.
     """
     try:
@@ -172,6 +192,35 @@ async def apply_job(job_id: str):
         raise HTTPException(status_code=404, detail="Job not found")
     except FileNotFoundError as e:
         raise HTTPException(status_code=422, detail=str(e))
+    except StateTransitionError as e:
+        raise HTTPException(status_code=409, detail=str(e))
+
+
+class ApproveApplyRequest(BaseModel):
+    action: str  # "approve" or "reject"
+    reason: str = ""
+
+
+@app.post("/api/jobs/{job_id}/approve-apply")
+async def approve_apply(job_id: str, req: ApproveApplyRequest):
+    """Approve or reject a job after confidence review."""
+    try:
+        job = await orchestrator.approve_apply(job_id, req.action, req.reason)
+        return job.model_dump(mode="json")
+    except JobNotFoundError:
+        raise HTTPException(status_code=404, detail="Job not found")
+    except StateTransitionError as e:
+        raise HTTPException(status_code=409, detail=str(e))
+
+
+@app.post("/api/jobs/{job_id}/mark-applied")
+async def mark_applied(job_id: str):
+    """Confirm a manual (LinkedIn) application was completed."""
+    try:
+        job = await orchestrator.mark_applied(job_id)
+        return job.model_dump(mode="json")
+    except JobNotFoundError:
+        raise HTTPException(status_code=404, detail="Job not found")
     except StateTransitionError as e:
         raise HTTPException(status_code=409, detail=str(e))
 
