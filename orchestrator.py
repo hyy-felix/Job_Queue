@@ -826,15 +826,26 @@ class Orchestrator:
                 f"Cannot retry job in {job.status.value} state"
             )
 
-    def delete_job(self, job_id: str) -> None:
-        """Delete a job that is not in-flight."""
+    async def delete_job(self, job_id: str) -> None:
+        """Delete a job from any status.
+
+        For in-flight jobs (EXTRACTING, GENERATING, APPLYING), kills the
+        subprocess first, then deletes. No state restriction.
+        """
         job = self.store.get_job(job_id)
+
+        # Kill subprocess if in-flight
         if job.status in IN_FLIGHT_STATES:
-            raise StateTransitionError(
-                f"Cannot delete job in {job.status.value} state"
-            )
+            proc = self._active_processes.pop(job_id, None)
+            if proc and proc.returncode is None:
+                try:
+                    _kill_process_tree(proc.pid)
+                except Exception:
+                    pass
+
         self.store.delete_job(job_id)
-        logger.info("Job %s deleted", job_id)
+        await self._emit_event("job_deleted", {"job_id": job_id})
+        logger.info("Job %s deleted (was %s)", job_id, job.status.value)
 
     # ── Score reception (pushed from Resume_Go) ────────────────
 

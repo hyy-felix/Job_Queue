@@ -239,12 +239,10 @@ async def cancel_job(job_id: str):
 @app.delete("/api/jobs/{job_id}")
 async def delete_job(job_id: str):
     try:
-        orchestrator.delete_job(job_id)
+        await orchestrator.delete_job(job_id)
         return JSONResponse(status_code=204, content=None)
     except JobNotFoundError:
         raise HTTPException(status_code=404, detail="Job not found")
-    except StateTransitionError as e:
-        raise HTTPException(status_code=409, detail=str(e))
 
 
 @app.get("/api/jobs/{job_id}/logs/{log_type}")
