@@ -45,6 +45,7 @@ APPLY_SCRIPT = PROJECT_DIR / "appliers" / "apply_job.py"
 
 # ── Apply settings ───────────────────────────────────────────────
 APPLY_TIMEOUT_SECONDS = int(os.environ.get("JQ_APPLY_TIMEOUT", "600"))  # 10 min
+REVIEW_TIMEOUT_SECONDS = int(os.environ.get("JQ_REVIEW_TIMEOUT", "120"))  # 2 min
 PROFILE_PATH = PROJECT_DIR / "profile.json"
 BROWSER_USE_PROJECT_DIR = BROWSER_USE_REPO  # alias for clarity
 
@@ -53,7 +54,36 @@ BROWSER_USE_PROJECT_DIR = BROWSER_USE_REPO  # alias for clarity
 # Example: JQ_CDP_URL=http://localhost:9222
 # Launch Chrome with: /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome \
 #   --remote-debugging-port=9222 --user-data-dir="$HOME/.chrome-job-queue"
-CDP_URL = os.environ.get("JQ_CDP_URL", "")
+#
+# Auto-detection: if JQ_CDP_URL is not set, probe common ports (9222-9224)
+# for a running Chrome with remote debugging. This avoids requiring the env
+# var when Chrome is already running with --remote-debugging-port.
+def _detect_cdp_url() -> str:
+    """Return JQ_CDP_URL from env, or auto-detect a running CDP Chrome."""
+    explicit = os.environ.get("JQ_CDP_URL", "")
+    if explicit:
+        return explicit
+
+    import urllib.request
+    for port in (9222, 9223, 9224):
+        url = f"http://127.0.0.1:{port}/json/version"
+        try:
+            req = urllib.request.Request(url)
+            # Bypass any system proxy for localhost
+            handler = urllib.request.ProxyHandler({})
+            opener = urllib.request.build_opener(handler)
+            resp = opener.open(req, timeout=0.5)
+            if resp.status == 200:
+                return f"http://localhost:{port}"
+        except Exception:
+            continue
+    return ""
+
+CDP_URL = _detect_cdp_url()
+if CDP_URL:
+    print(f"[config] CDP auto-detected: {CDP_URL}")
+else:
+    print("[config] No CDP Chrome detected — extractions will launch a new browser")
 
 # ── Mock mode (for testing when LLM credentials are unavailable) ──
 MOCK_EXTRACTION = os.environ.get("JQ_MOCK_EXTRACTION", "").lower() in ("1", "true", "yes")
