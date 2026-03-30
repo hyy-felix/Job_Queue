@@ -408,8 +408,8 @@ class TestReviewData:
         assert len(restored.review.fields) == 1
 
 
-class TestLinkedInSkip:
-    """Tests for LinkedIn Easy Apply generation skip."""
+class TestLinkedInFlag:
+    """Tests for LinkedIn Easy Apply is_linkedin field."""
 
     def test_is_linkedin_default_false(self):
         job = Job(source_url="https://example.com/job/1")

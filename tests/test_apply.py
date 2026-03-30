@@ -330,10 +330,13 @@ class TestCrashRecoveryNewStates:
         assert recovered.status == JobStatus.MANUAL_APPLY
 
 
-class TestLinkedInGenerationSkip:
+class TestLinkedInGeneration:
 
-    def test_linkedin_job_can_skip_to_generated(self, orch, store):
-        """A QUEUED LinkedIn job can be moved directly to GENERATED."""
+    def test_linkedin_job_queued_for_normal_generation(self, orch, store):
+        """LinkedIn jobs go through normal generation — no skip.
+
+        LinkedIn routing (MANUAL_APPLY) happens at apply time, not generation.
+        """
         job = store.create_job("https://www.linkedin.com/jobs/view/123")
         for status in [
             JobStatus.EXTRACTING, JobStatus.SCRAPED, JobStatus.QUEUED,
@@ -343,31 +346,10 @@ class TestLinkedInGenerationSkip:
         job.is_linkedin = True
         store.update_job(job)
 
-        from models import GenerationData
-        from datetime import datetime, timezone
-        job = store.get_job(job.job_id)
-        job.status = JobStatus.GENERATING
-        store.update_job(job)
-        job.generation = GenerationData(completed_at=datetime.now(timezone.utc))
-        orch._transition(job, JobStatus.GENERATED)
-
         result = store.get_job(job.job_id)
-        assert result.status == JobStatus.GENERATED
-        assert result.generation.completed_at is not None
-
-    def test_non_linkedin_job_not_skipped(self, orch, store):
-        job = store.create_job("https://example.com/job/456")
-        for status in [
-            JobStatus.EXTRACTING, JobStatus.SCRAPED, JobStatus.QUEUED,
-        ]:
-            job.status = status
-            store.update_job(job)
-        job.is_linkedin = False
-        store.update_job(job)
-
-        result = store.get_job(job.job_id)
-        assert result.is_linkedin is False
         assert result.status == JobStatus.QUEUED
+        assert result.is_linkedin is True
+        # Job stays QUEUED — generation loop will pick it up and run real generation
 
     def test_is_linkedin_set_during_extraction(self, orch, store):
         from orchestrator import _is_linkedin_easy_apply

@@ -387,18 +387,9 @@ class Orchestrator:
 
                 job = queued[0]
 
-                # LinkedIn Easy Apply: skip generation entirely
-                job = self.store.get_job(job.job_id)
-                if job.is_linkedin:
-                    job.generation = GenerationData(
-                        completed_at=datetime.now(timezone.utc),
-                    )
-                    job = self._transition(job, JobStatus.GENERATED)
-                    logger.info(
-                        "LinkedIn Easy Apply — skipping generation for job %s", job.job_id
-                    )
-                    await self._emit_event("job_updated", _job_summary(job))
-                    continue
+                # LinkedIn jobs still need resume/cover letter generation —
+                # LinkedIn-specific routing (MANUAL_APPLY) happens at apply
+                # time, not here.  See queue_apply() for the LinkedIn branch.
 
                 if not self._acquire_generation_lock(job.job_id):
                     logger.warning("Generation lock already held, waiting...")
@@ -839,7 +830,7 @@ class Orchestrator:
             proc = self._active_processes.pop(job_id, None)
             if proc and proc.returncode is None:
                 try:
-                    _kill_process_tree(proc.pid)
+                    await _kill_process_tree(proc, label=f"delete:{job_id}")
                 except Exception:
                     pass
 
