@@ -67,13 +67,13 @@ async def apply_to_job(
         if not os.environ.get("GOOGLE_API_KEY") and os.environ.get("GEMINI_API_KEY"):
             os.environ["GOOGLE_API_KEY"] = os.environ["GEMINI_API_KEY"]
         from browser_use.llm import ChatGoogle
-        llm = ChatGoogle(model="gemini-2.0-flash", temperature=0.0)
-        llm_name = "Google AI gemini-2.0-flash"
+        llm = ChatGoogle(model="gemini-3-flash", temperature=0.0)
+        llm_name = "Google AI gemini-3-flash"
 
     elif os.environ.get("GOOGLE_GENAI_USE_VERTEXAI"):
         from browser_use.llm import ChatGoogle
-        llm = ChatGoogle(model="gemini-2.0-flash", temperature=0.0)
-        llm_name = "Vertex AI gemini-2.0-flash"
+        llm = ChatGoogle(model="gemini-3-flash", temperature=0.0)
+        llm_name = "Vertex AI gemini-3-flash"
 
     elif os.environ.get("OPENAI_API_KEY"):
         from browser_use.llm import ChatOpenAI
@@ -113,14 +113,49 @@ async def apply_to_job(
     # ── Build the browser-use task prompt ─────────────────────────
     profile_info = ""
     if profile:
+        # Build full name from first_name + last_name, or fall back to full_name
+        full_name = profile.get('full_name', '')
+        if not full_name:
+            first = profile.get('first_name', '')
+            last = profile.get('last_name', '')
+            full_name = f"{first} {last}".strip()
+
+        # Build full address from components, or fall back to location
+        address_parts = []
+        if profile.get('address'):
+            address_parts.append(profile['address'])
+        if profile.get('city'):
+            address_parts.append(profile['city'])
+        if profile.get('postal_code'):
+            address_parts.append(profile['postal_code'])
+        if profile.get('country'):
+            address_parts.append(profile['country'])
+        location = ', '.join(address_parts) if address_parts else profile.get('location', '')
+
         profile_info = f"""
-Candidate information to fill into the form:
-- Full Name: {profile.get('full_name', '')}
+Candidate information to fill into the form (USE EXACTLY THESE VALUES, do NOT make up or guess any information):
+- Full Name: {full_name}
+- First Name: {profile.get('first_name', '')}
+- Last Name: {profile.get('last_name', '')}
 - Email: {profile.get('email', '')}
 - Phone: {profile.get('phone', '')}
+- Address: {profile.get('address', '')}
+- City: {profile.get('city', '')}
+- State/Province: {profile.get('state', '')}
+- Postal Code: {profile.get('postal_code', '')}
+- Country: {profile.get('country', '')}
+- Full Location: {location}
 - LinkedIn: {profile.get('linkedin_url', '')}
 - Website: {profile.get('website', '')}
-- Location: {profile.get('location', '')}
+- Age: {profile.get('age', '')}
+- Gender: {profile.get('gender', '')}
+- Race/Ethnicity: {profile.get('race', '')}
+- US Citizen: {profile.get('US_citizen', '')}
+- Sponsorship Needed: {profile.get('sponsorship_needed', '')}
+- Veteran Status: {profile.get('Veteran_status', '')}
+- Disability Status: {profile.get('disability_status', '')}
+
+IMPORTANT: Only use the EXACT values listed above. If a field is empty above, leave it blank on the form. NEVER guess or make up addresses, phone numbers, or any other personal information.
 """
 
     submit_instruction = ""
@@ -185,6 +220,7 @@ No markdown formatting. No explanation. Just the JSON.
         "error": None,
         "llm_used": llm_name,
         "timestamp": datetime.now(timezone.utc).isoformat(),
+        "dom_fields": [],  # Extracted form field values for review agent
     }
 
     # Build browser session — connect to existing Chrome if CDP URL provided
@@ -198,6 +234,11 @@ No markdown formatting. No explanation. Just the JSON.
         )
         browser_session = BrowserSession(browser_profile=profile_obj)
 
+    # Collect file paths for browser-use upload (DOM.setFileInputFiles)
+    upload_files = [str(resume_path)]
+    if has_cover_letter:
+        upload_files.append(str(cover_letter_path))
+
     try:
         if browser_session:
             # Open job URL in a NEW TAB (don't navigate away from existing tabs)
@@ -207,9 +248,10 @@ No markdown formatting. No explanation. Just the JSON.
                 browser_session=browser_session,
                 initial_actions=[{'navigate': {'url': url, 'new_tab': True}}],
                 directly_open_url=False,  # Prevent auto-navigate which uses current tab
+                available_file_paths=upload_files,
             )
         else:
-            agent = Agent(task=task, llm=llm)
+            agent = Agent(task=task, llm=llm, available_file_paths=upload_files)
         result = await agent.run(max_steps=50)
 
         # ── Take screenshot ───────────────────────────────────────
@@ -223,6 +265,25 @@ No markdown formatting. No explanation. Just the JSON.
                     print(f"Screenshot saved: {screenshot_path}")
         except Exception as ss_err:
             print(f"WARNING: Screenshot failed: {ss_err}")
+
+        # ── Extract DOM form fields for review agent ───────────────
+        try:
+            if hasattr(agent, 'browser') and agent.browser:
+                page = await agent.browser.get_current_page()
+                if page:
+                    dom_fields = await page.evaluate("""
+                        Array.from(document.querySelectorAll('input, select, textarea')).map(el => ({
+                            name: el.name || el.id || el.getAttribute('aria-label') || '',
+                            type: el.type || el.tagName.toLowerCase(),
+                            value: el.value || '',
+                            placeholder: el.placeholder || '',
+                            visible: el.offsetParent !== null
+                        })).filter(f => f.visible && f.name)
+                    """)
+                    result_data["dom_fields"] = dom_fields
+                    print(f"Extracted {len(dom_fields)} DOM form fields")
+        except Exception as dom_err:
+            print(f"WARNING: DOM field extraction failed: {dom_err}")
 
         # ── Parse agent result ────────────────────────────────────
         if result and result.final_result():

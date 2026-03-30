@@ -13,18 +13,90 @@ import json
 import logging
 import os
 import signal
+import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
+from urllib.parse import urlparse
+
+
+def _get_descendant_pids(pid: int) -> list[int]:
+    """Return all descendant PIDs of *pid* (children, grandchildren, etc.)."""
+    descendants: list[int] = []
+    try:
+        out = subprocess.check_output(
+            ["pgrep", "-P", str(pid)], text=True, timeout=5,
+        )
+        for line in out.strip().splitlines():
+            child = int(line.strip())
+            descendants.append(child)
+            descendants.extend(_get_descendant_pids(child))
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired, ValueError):
+        pass
+    return descendants
+
+
+async def _kill_process_tree(proc: asyncio.subprocess.Process, label: str = "") -> None:
+    """Kill a subprocess and all its descendants, ensuring no orphans remain.
+
+    1. Send SIGTERM to the process group (covers well-behaved children).
+    2. Collect any descendant PIDs that may have escaped the group.
+    3. Wait up to 5 s for graceful shutdown.
+    4. SIGKILL anything still alive (group + individual descendants).
+    """
+    tag = f"[{label}] " if label else ""
+    logger = logging.getLogger("orchestrator")
+
+    # Snapshot descendant PIDs before sending signals
+    descendants = _get_descendant_pids(proc.pid)
+    all_pids = [proc.pid] + descendants
+    if descendants:
+        logger.info("%sDescendant PIDs of %d: %s", tag, proc.pid, descendants)
+
+    # 1. SIGTERM the process group
+    try:
+        os.killpg(proc.pid, signal.SIGTERM)
+        logger.info("%sSent SIGTERM to process group %d", tag, proc.pid)
+    except (ProcessLookupError, PermissionError):
+        pass
+
+    # 2. SIGTERM individual descendants that may have left the group
+    for dpid in descendants:
+        try:
+            os.kill(dpid, signal.SIGTERM)
+        except (ProcessLookupError, PermissionError):
+            pass
+
+    # 3. Grace period
+    await asyncio.sleep(5)
+
+    # 4. SIGKILL anything still alive
+    if proc.returncode is None:
+        try:
+            os.killpg(proc.pid, signal.SIGKILL)
+            logger.warning("%sSent SIGKILL to process group %d", tag, proc.pid)
+        except (ProcessLookupError, PermissionError):
+            pass
+
+    # Also SIGKILL lingering descendants
+    for dpid in descendants:
+        try:
+            os.kill(dpid, 0)  # probe
+            os.kill(dpid, signal.SIGKILL)
+            logger.warning("%sSent SIGKILL to orphaned descendant %d", tag, dpid)
+        except (ProcessLookupError, PermissionError):
+            pass
 
 import config
 from models import (
     ApplyData,
     ExtractionData,
     ErrorInfo,
+    FieldReview,
     GenerationData,
     Job,
     JobStatus,
+    ReviewData,
     WorkerInfo,
     is_legal_transition,
     is_workflow_terminal,
@@ -37,6 +109,15 @@ logger = logging.getLogger("job_queue")
 
 class StateTransitionError(Exception):
     pass
+
+
+def _is_linkedin_easy_apply(url: str) -> bool:
+    """Detect LinkedIn job URLs that use Easy Apply."""
+    try:
+        parsed = urlparse(url)
+        return "linkedin.com" in parsed.netloc.lower()
+    except Exception:
+        return False
 
 
 def _build_no_proxy_env() -> dict:
@@ -125,21 +206,25 @@ class Orchestrator:
                 job.worker = WorkerInfo()
                 self._transition(job, JobStatus.APPLY_FAILED)
 
-            elif job.status == JobStatus.APPLY_QUEUED:
-                # Task was scheduled but never started — reset to COMPLETED
-                # so user can re-trigger manually
-                job.error.last_error = "Server restarted before apply started"
-                self._transition(job, JobStatus.CANCELLED)
-                logger.info("Reset APPLY_QUEUED job %s to CANCELLED", job.job_id)
+            # APPLY_QUEUED removed in schema v2 — any migrated jobs
+            # in GENERATED state are safe (apply can be re-triggered).
 
         logger.info("Crash recovery complete")
 
     def _reap_worker(self, job: Job) -> None:
-        """Try to kill orphaned subprocess if PID/PGID is recorded."""
+        """Try to kill orphaned subprocess and its descendants."""
         if job.worker.pgid:
+            descendants = _get_descendant_pids(job.worker.pgid)
+            all_pids = [job.worker.pgid] + descendants
+            for pid in all_pids:
+                try:
+                    os.kill(pid, signal.SIGTERM)
+                    logger.info("Sent SIGTERM to orphaned PID %d (job %s)", pid, job.job_id)
+                except (ProcessLookupError, PermissionError):
+                    pass
+            # Also SIGTERM the process group
             try:
                 os.killpg(job.worker.pgid, signal.SIGTERM)
-                logger.info("Sent SIGTERM to orphaned process group %d", job.worker.pgid)
             except (ProcessLookupError, PermissionError):
                 pass
 
@@ -226,10 +311,11 @@ class Orchestrator:
                             timeout=config.EXTRACTION_TIMEOUT_SECONDS,
                         )
                     except asyncio.TimeoutError:
-                        os.killpg(proc.pid, signal.SIGTERM)
-                        await asyncio.sleep(2)
-                        if proc.returncode is None:
-                            os.killpg(proc.pid, signal.SIGKILL)
+                        logger.warning(
+                            "Extraction timed out for job %s after %ds — killing process tree",
+                            job.job_id, config.EXTRACTION_TIMEOUT_SECONDS,
+                        )
+                        await _kill_process_tree(proc, label=f"extract:{job.job_id}")
                         raise
 
                 self._active_processes.pop(job.job_id, None)
@@ -242,7 +328,8 @@ class Orchestrator:
                     extraction_data = self._parse_extraction_output(output_path)
                     if extraction_data.job_description:
                         job.extraction = extraction_data
-                        job = self._transition(job, JobStatus.READY_FOR_REVIEW)
+                        job.is_linkedin = _is_linkedin_easy_apply(job.source_url)
+                        job = self._transition(job, JobStatus.SCRAPED)
                     else:
                         job.error.last_error = "Extraction succeeded but no job_description found"
                         job = self._transition(job, JobStatus.EXTRACTION_FAILED)
@@ -292,21 +379,30 @@ class Orchestrator:
         self._running = True
         logger.info("Generation queue loop started")
         while self._running:
-            queued = self.store.get_queued_jobs()
-            if not queued:
-                await asyncio.sleep(2)
-                continue
-
-            job = queued[0]
-            if not self._acquire_generation_lock(job.job_id):
-                logger.warning("Generation lock already held, waiting...")
-                await asyncio.sleep(5)
-                continue
-
             try:
-                await self._run_generation(job)
-            finally:
-                self._release_generation_lock()
+                queued = self.store.get_queued_jobs()
+                if not queued:
+                    await asyncio.sleep(2)
+                    continue
+
+                job = queued[0]
+
+                # LinkedIn jobs still need resume/cover letter generation —
+                # LinkedIn-specific routing (MANUAL_APPLY) happens at apply
+                # time, not here.  See queue_apply() for the LinkedIn branch.
+
+                if not self._acquire_generation_lock(job.job_id):
+                    logger.warning("Generation lock already held, waiting...")
+                    await asyncio.sleep(5)
+                    continue
+
+                try:
+                    await self._run_generation(job)
+                finally:
+                    self._release_generation_lock()
+            except Exception as exc:
+                logger.exception("Generation loop error (continuing): %s", exc)
+                await asyncio.sleep(5)
 
     async def _run_generation(self, job: Job) -> None:
         job = self.store.get_job(job.job_id)
@@ -338,19 +434,31 @@ class Orchestrator:
                             pre_dirs.add(str(role_dir))
 
         prompt = (
-            f"Build a resume and cover letter for the following job. "
             f"Company: {company}, Role: {role}. "
             f"The full job description is in the file {jd_tmp} — read it and use it. "
             f"After completing all files, print the exact output folder path as the "
             f"very last line of your output, prefixed with OUTPUT_PATH: "
+            f"Do not perform the git save step."
         )
+
+        # Build command — inject SKILL.md for deterministic workflow if available
+        cmd = [
+            config.CLAUDE_CLI, "--print",
+            "--dangerously-skip-permissions",
+        ]
+        if config.APPLY_JD_SKILL_FILE.exists():
+            cmd.extend(["--append-system-prompt-file", str(config.APPLY_JD_SKILL_FILE)])
+        else:
+            logger.warning(
+                "apply-jd SKILL.md not found at %s — using free-form prompt",
+                config.APPLY_JD_SKILL_FILE,
+            )
+        cmd.extend(["-p", prompt])
 
         try:
             with open(log_path, "w") as log_file:
                 proc = await asyncio.create_subprocess_exec(
-                    config.CLAUDE_CLI, "--print",
-                    "--dangerously-skip-permissions",
-                    "-p", prompt,
+                    *cmd,
                     stdout=log_file,
                     stderr=asyncio.subprocess.STDOUT,
                     cwd=str(config.WORK_DIR),
@@ -366,10 +474,11 @@ class Orchestrator:
                         timeout=config.GENERATION_TIMEOUT_SECONDS,
                     )
                 except asyncio.TimeoutError:
-                    os.killpg(proc.pid, signal.SIGTERM)
-                    await asyncio.sleep(5)
-                    if proc.returncode is None:
-                        os.killpg(proc.pid, signal.SIGKILL)
+                    logger.warning(
+                        "Generation timed out for job %s after %ds — killing process tree",
+                        job.job_id, config.GENERATION_TIMEOUT_SECONDS,
+                    )
+                    await _kill_process_tree(proc, label=f"gen:{job.job_id}")
                     raise
 
             self._active_processes.pop(job.job_id, None)
@@ -383,11 +492,18 @@ class Orchestrator:
                 if output_folder:
                     validation = self._validate_and_copy(job, output_folder)
                     if validation:
+                        out_dir = config.JOBS_DIR / job.job_id / "output"
+                        sl_path = out_dir / "selection_log.json"
                         job.generation = GenerationData(
                             output_folder=str(output_folder),
                             completed_at=datetime.now(timezone.utc),
+                            resume_path=str(out_dir / "resume.pdf"),
+                            cover_letter_path=str(out_dir / "cover_letter.pdf"),
+                            selection_log_path=str(sl_path),
                         )
-                        job = self._transition(job, JobStatus.COMPLETED)
+                        # Extract structured requirements from selection_log
+                        job.requirements = self._extract_requirements(sl_path)
+                        job = self._transition(job, JobStatus.GENERATED)
                     else:
                         job.error.last_error = "Output validation failed"
                         job = self._transition(job, JobStatus.GENERATION_FAILED)
@@ -510,17 +626,29 @@ class Orchestrator:
         if not found_compile_evidence:
             logger.warning("No compile log evidence found, relying on PDF existence + size check")
 
-        # Copy artifacts
+        # Require selection_log.json — validate BEFORE copying anything
+        selection_log = output_folder / "note" / "selection_log.json"
+        if not selection_log.exists():
+            logger.error("selection_log.json missing at %s", selection_log)
+            return False
+        try:
+            sl_data = json.loads(selection_log.read_text(encoding="utf-8"))
+            if "jd_requirements" not in sl_data:
+                logger.error("selection_log.json missing 'jd_requirements' key")
+                return False
+        except (json.JSONDecodeError, OSError) as exc:
+            logger.error("selection_log.json unreadable: %s", exc)
+            return False
+
+        # All validation passed — now copy artifacts
         import shutil
         out_dir = job_dir / "output"
         shutil.copy2(str(resume), str(out_dir / "resume.pdf"))
         shutil.copy2(str(cover_letter), str(out_dir / "cover_letter.pdf"))
+        shutil.copy2(str(selection_log), str(out_dir / "selection_log.json"))
 
-        # Copy additional artifacts if they exist
-        selection_log = output_folder / "note" / "selection_log.json"
+        # Copy optional artifacts
         notes = output_folder / "note" / "notes.md"
-        if selection_log.exists():
-            shutil.copy2(str(selection_log), str(out_dir / "selection_log.json"))
         if notes.exists():
             shutil.copy2(str(notes), str(out_dir / "notes.md"))
 
@@ -541,6 +669,62 @@ class Orchestrator:
 
         logger.info("Artifacts copied to workspace for job %s", job.job_id)
         return True
+
+    @staticmethod
+    def _extract_requirements(selection_log_path: Path) -> list:
+        """Extract structured requirements from selection_log.json.
+
+        Reads the jd_requirements string[] and converts each entry to a
+        RequirementItem with default metadata. When resume-builder is upgraded
+        to produce richer structured output, this method will pass it through.
+        """
+        from models import RequirementItem
+
+        try:
+            sl_data = json.loads(selection_log_path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            return []
+
+        # Check for structured requirements first (future: resume-builder upgrade)
+        structured = sl_data.get("structured_requirements")
+        if structured and isinstance(structured, list):
+            items = []
+            for i, req in enumerate(structured, 1):
+                if isinstance(req, dict) and req.get("text"):
+                    items.append(RequirementItem(
+                        id=req.get("id", f"req_{i:03d}"),
+                        text=req["text"],
+                        type=req.get("type", "other"),
+                        priority=req.get("priority", "must"),
+                        keywords=req.get("keywords", []),
+                        weight=req.get("weight", 1.0),
+                        evidence_hint=req.get("evidence_hint"),
+                        years_required=req.get("years_required"),
+                    ))
+            if items:
+                logger.info("Using %d structured requirements from selection_log", len(items))
+                return items
+
+        # Fallback: convert string[] to minimal structured format
+        raw_reqs = sl_data.get("jd_requirements", [])
+        if not isinstance(raw_reqs, list):
+            return []
+
+        items = []
+        for i, text in enumerate(raw_reqs, 1):
+            if isinstance(text, str) and text.strip():
+                items.append(RequirementItem(
+                    id=f"req_{i:03d}",
+                    text=text.strip(),
+                    type="other",
+                    priority="must",
+                    keywords=[],
+                    weight=1.0,
+                ))
+
+        if items:
+            logger.info("Converted %d string requirements to structured format", len(items))
+        return items
 
     # ── API-facing mutations (called by server.py) ─────────────
     # These ensure ALL state writes go through the orchestrator.
@@ -578,15 +762,15 @@ class Orchestrator:
         return job
 
     async def approve_job(self, job_id: str) -> Job:
-        """Approve a job for generation (from ready_for_review or extraction_failed with JD)."""
+        """Approve a job for generation (from scraped or extraction_failed with JD)."""
         job = self.store.get_job(job_id)
 
         if job.status == JobStatus.EXTRACTION_FAILED:
             if not job.extraction.job_description:
                 raise StateTransitionError("Cannot approve: job_description is required")
-            job = self._transition(job, JobStatus.READY_FOR_REVIEW)
+            job = self._transition(job, JobStatus.SCRAPED)
 
-        if job.status != JobStatus.READY_FOR_REVIEW:
+        if job.status != JobStatus.SCRAPED:
             raise StateTransitionError(
                 f"Cannot approve job in {job.status.value} state"
             )
@@ -633,15 +817,64 @@ class Orchestrator:
                 f"Cannot retry job in {job.status.value} state"
             )
 
-    def delete_job(self, job_id: str) -> None:
-        """Delete a job that is not in-flight."""
+    async def delete_job(self, job_id: str) -> None:
+        """Delete a job from any status.
+
+        For in-flight jobs (EXTRACTING, GENERATING, APPLYING), kills the
+        subprocess first, then deletes. No state restriction.
+        """
         job = self.store.get_job(job_id)
+
+        # Kill subprocess if in-flight
         if job.status in IN_FLIGHT_STATES:
-            raise StateTransitionError(
-                f"Cannot delete job in {job.status.value} state"
-            )
+            proc = self._active_processes.pop(job_id, None)
+            if proc and proc.returncode is None:
+                try:
+                    await _kill_process_tree(proc, label=f"delete:{job_id}")
+                except Exception:
+                    pass
+
         self.store.delete_job(job_id)
-        logger.info("Job %s deleted", job_id)
+        await self._emit_event("job_deleted", {"job_id": job_id})
+        logger.info("Job %s deleted (was %s)", job_id, job.status.value)
+
+    # ── Score reception (pushed from Resume_Go) ────────────────
+
+    async def receive_score(self, job_id: str, score_data: dict) -> Job:
+        """Store a score pushed from Resume_Go and transition to SCORED.
+
+        Idempotent: if already SCORED, returns existing job without error
+        (handles network retries and duplicate SSE-driven pushes).
+        """
+        job = self.store.get_job(job_id)
+        if job.status == JobStatus.SCORED:
+            logger.info("Job %s already scored (%.1f%%), ignoring duplicate push",
+                        job_id, job.score.overall_score or 0)
+            return job
+        if job.status != JobStatus.GENERATED:
+            raise StateTransitionError(
+                f"Cannot receive score in {job.status.value} state (expected generated)"
+            )
+
+        overall = score_data.get("overall_score")
+        if overall is None or not isinstance(overall, (int, float)):
+            raise StateTransitionError("overall_score is required and must be a number")
+        if not (0 <= overall <= 100):
+            raise StateTransitionError("overall_score must be between 0 and 100")
+
+        from models import ScoreData
+        job.score = ScoreData(
+            overall_score=overall,
+            keyword_score=score_data.get("keyword_score"),
+            semantic_score=score_data.get("semantic_score"),
+            algorithm=score_data.get("algorithm", "jd-match-resume"),
+            requirement_scores=score_data.get("requirement_scores", []),
+            computed_at=datetime.now(timezone.utc),
+        )
+        job = self._transition(job, JobStatus.SCORED)
+        await self._emit_event("job_updated", _job_summary(job))
+        logger.info("Job %s scored: %.1f%%", job_id, overall)
+        return job
 
     # ── Cancellation ──────────────────────────────────────────
 
@@ -653,13 +886,7 @@ class Orchestrator:
         # Kill subprocess if in-flight
         proc = self._active_processes.pop(job_id, None)
         if proc and proc.returncode is None:
-            try:
-                os.killpg(proc.pid, signal.SIGTERM)
-                await asyncio.sleep(5)
-                if proc.returncode is None:
-                    os.killpg(proc.pid, signal.SIGKILL)
-            except (ProcessLookupError, PermissionError):
-                pass
+            await _kill_process_tree(proc, label=f"cancel:{job_id}")
 
         job.worker = WorkerInfo()
         job = self._transition(job, JobStatus.CANCELLED)
@@ -669,13 +896,14 @@ class Orchestrator:
     # ── Apply (manual trigger only) ──────────────────────
 
     async def queue_apply(self, job_id: str) -> Job:
-        """Manually queue a completed job for application.
+        """Trigger application for a generated/scored job.
 
         Validates artifacts exist before transitioning. Does NOT auto-trigger —
         must be called explicitly via POST /api/jobs/{id}/apply.
+        LinkedIn URLs route to MANUAL_APPLY; others dispatch apply subprocess.
         """
         job = self.store.get_job(job_id)
-        if job.status not in {JobStatus.COMPLETED, JobStatus.APPLY_FAILED}:
+        if job.status not in {JobStatus.GENERATED, JobStatus.SCORED, JobStatus.APPLY_FAILED}:
             raise StateTransitionError(
                 f"Cannot apply from {job.status.value} state"
             )
@@ -689,7 +917,22 @@ class Orchestrator:
         if not resume_pdf or not Path(resume_pdf).exists():
             raise FileNotFoundError(f"Resume PDF not found for job {job_id}")
 
-        job = self._transition(job, JobStatus.APPLY_QUEUED)
+        # LinkedIn: hand off to user's daily browser immediately
+        if _is_linkedin_easy_apply(job.source_url):
+            job = self._transition(job, JobStatus.MANUAL_APPLY)
+            logger.info(
+                "LinkedIn detected for job %s — handing off to daily browser. "
+                "Resume: %s", job_id, resume_pdf,
+            )
+            try:
+                subprocess.run(["open", job.source_url], check=False)
+            except Exception as exc:
+                logger.warning("Failed to open URL in browser: %s", exc)
+            await self._emit_event("job_updated", _job_summary(job))
+            return job
+
+        # Non-LinkedIn: dispatch apply subprocess
+        job = self._transition(job, JobStatus.APPLYING)
         await self._emit_event("job_updated", _job_summary(job))
         asyncio.create_task(self._dispatch_apply(job_id))
         return job
@@ -697,15 +940,13 @@ class Orchestrator:
     async def _dispatch_apply(self, job_id: str) -> None:
         """Run the apply subprocess. Mirrors _run_extraction pattern.
 
-        Writes stdout to apply.log file descriptor (not PIPE) to avoid
-        memory bloat from verbose browser-use output.
+        Only called for non-LinkedIn URLs (LinkedIn is handled by queue_apply).
+        Runs browser-use, then optionally the review agent for confidence scoring
+        (requires CDP + API key).
         """
         job = self.store.get_job(job_id)
-        if job.status != JobStatus.APPLY_QUEUED:
+        if job.status != JobStatus.APPLYING:
             return
-
-        job = self._transition(job, JobStatus.APPLYING)
-        await self._emit_event("job_updated", _job_summary(job))
 
         job_dir = config.JOBS_DIR / job_id
         output_dir = job_dir / "output"
@@ -756,10 +997,11 @@ class Orchestrator:
                         timeout=config.APPLY_TIMEOUT_SECONDS,
                     )
                 except asyncio.TimeoutError:
-                    os.killpg(proc.pid, signal.SIGTERM)
-                    await asyncio.sleep(2)
-                    if proc.returncode is None:
-                        os.killpg(proc.pid, signal.SIGKILL)
+                    logger.warning(
+                        "Apply timed out for job %s after %ds — killing process tree",
+                        job_id, config.APPLY_TIMEOUT_SECONDS,
+                    )
+                    await _kill_process_tree(proc, label=f"apply:{job_id}")
                     raise
 
             self._active_processes.pop(job_id, None)
@@ -793,9 +1035,23 @@ class Orchestrator:
                     job = self._transition(job, JobStatus.APPLY_FAILED)
                     logger.warning("Apply partial for job %s: resume upload unconfirmed", job_id)
                 else:
-                    job.apply.applied_at = datetime.now(timezone.utc)
-                    job = self._transition(job, JobStatus.APPLIED)
-                    logger.info("Apply succeeded for job %s", job_id)
+                    # ── Review agent (confidence-gated) ────────────
+                    # Guards: CDP required (browser must persist for user to submit)
+                    #         ANTHROPIC_API_KEY required for LLM review
+                    review_ran = False
+                    if config.CDP_URL and os.environ.get("ANTHROPIC_API_KEY"):
+                        review_ran = await self._run_review_agent(job, output_dir)
+
+                    if review_ran:
+                        # Review succeeded — wait for user approval
+                        job = self._transition(job, JobStatus.REVIEW_REQUIRED)
+                        logger.info("Review required for job %s (confidence=%.2f)",
+                                    job_id, job.review.overall_confidence)
+                    else:
+                        # No review — go straight to APPLIED (same as before)
+                        job.apply.applied_at = datetime.now(timezone.utc)
+                        job = self._transition(job, JobStatus.APPLIED)
+                        logger.info("Apply succeeded for job %s (review skipped)", job_id)
             else:
                 job.error.last_error = f"Apply subprocess exited {proc.returncode}"
                 job = self._transition(job, JobStatus.APPLY_FAILED)
@@ -820,6 +1076,87 @@ class Orchestrator:
             self._active_processes.pop(job_id, None)
             await self._emit_event("job_updated", _job_summary(job))
 
+    async def _run_review_agent(self, job: Job, output_dir: Path) -> bool:
+        """Run the confidence-gated review agent. Returns True if review succeeded."""
+        from appliers.review_agent import run_review
+
+        result_path = output_dir / "apply_result.json"
+        screenshot_path = output_dir / "apply_evidence.png"
+
+        try:
+            review_dict = await asyncio.wait_for(
+                run_review(result_path, screenshot_path, config.PROFILE_PATH),
+                timeout=config.REVIEW_TIMEOUT_SECONDS,
+            )
+
+            # Convert dict to ReviewData model
+            fields = []
+            for f in review_dict.get("fields", []):
+                fields.append(FieldReview(
+                    field_name=f.get("field_name", ""),
+                    filled_value=f.get("filled_value", ""),
+                    source=f.get("source", "unknown"),
+                    confidence=float(f.get("confidence", 0.0)),
+                    issue=f.get("issue"),
+                ))
+            job.review = ReviewData(
+                overall_confidence=float(review_dict.get("overall_confidence", 0.0)),
+                fields=fields,
+                flags=review_dict.get("flags", []),
+                recommendation=review_dict.get("recommendation", "review_required"),
+                screenshot_path=review_dict.get("screenshot_path"),
+                reviewed_at=datetime.now(timezone.utc),
+            )
+            self.store.update_job(job)
+            return True
+
+        except asyncio.TimeoutError:
+            logger.warning("Review agent timed out for job %s", job.job_id)
+            return False
+        except Exception as exc:
+            logger.warning("Review agent failed for job %s: %s", job.job_id, exc)
+            return False
+
+    # ── Review approval / LinkedIn confirmation ─────────────
+
+    async def approve_apply(self, job_id: str, action: str, reason: str = "") -> Job:
+        """Approve or reject a job in REVIEW_REQUIRED state.
+
+        action: "approve" → APPLIED, "reject" → APPLY_FAILED
+        """
+        job = self.store.get_job(job_id)
+        if job.status != JobStatus.REVIEW_REQUIRED:
+            raise StateTransitionError(
+                f"Cannot approve-apply from {job.status.value} state"
+            )
+
+        if action == "approve":
+            job.apply.applied_at = datetime.now(timezone.utc)
+            job = self._transition(job, JobStatus.APPLIED)
+            logger.info("Job %s approved by user", job_id)
+        elif action == "reject":
+            job.error.last_error = reason or "Rejected by user after review"
+            job = self._transition(job, JobStatus.APPLY_FAILED)
+            logger.info("Job %s rejected by user: %s", job_id, reason)
+        else:
+            raise StateTransitionError(f"Invalid action: {action}")
+
+        await self._emit_event("job_updated", _job_summary(job))
+        return job
+
+    async def mark_applied(self, job_id: str) -> Job:
+        """Mark a MANUAL_APPLY job as APPLIED (user confirms they applied on LinkedIn)."""
+        job = self.store.get_job(job_id)
+        if job.status != JobStatus.MANUAL_APPLY:
+            raise StateTransitionError(
+                f"Cannot mark-applied from {job.status.value} state"
+            )
+        job.apply.applied_at = datetime.now(timezone.utc)
+        job = self._transition(job, JobStatus.APPLIED)
+        logger.info("Job %s marked as applied (manual)", job_id)
+        await self._emit_event("job_updated", _job_summary(job))
+        return job
+
     # ── Lifecycle ─────────────────────────────────────────────
 
     async def start(self) -> None:
@@ -837,8 +1174,12 @@ class Orchestrator:
 
 
 def _job_summary(job: Job) -> dict:
-    """Create a summary dict for SSE events."""
-    return {
+    """Create a summary dict for SSE events.
+
+    Enriched in Wave 4: includes generation paths, score, and JD text
+    so the frontend can update without re-fetching the full job.
+    """
+    summary: dict = {
         "job_id": job.job_id,
         "source_url": job.source_url,
         "status": job.status.value,
@@ -848,3 +1189,32 @@ def _job_summary(job: Job) -> dict:
         "salary": job.extraction.salary,
         "error": job.error.last_error,
     }
+
+    # Include JD text once available (SCRAPED+)
+    if job.extraction.job_description:
+        summary["jd_text"] = job.extraction.job_description
+
+    # Include generation data when available (GENERATED+)
+    if job.generation.completed_at:
+        summary["generation"] = {
+            "output_folder": job.generation.output_folder,
+            "resume_path": job.generation.resume_path,
+            "cover_letter_path": job.generation.cover_letter_path,
+            "selection_log_path": job.generation.selection_log_path,
+            "completed_at": job.generation.completed_at.isoformat() if job.generation.completed_at else None,
+        }
+
+    # Include requirements count (GENERATED+)
+    if job.requirements:
+        summary["requirements_count"] = len(job.requirements)
+
+    # Include score when available (SCORED+)
+    if job.score.overall_score is not None:
+        summary["score"] = {
+            "overall_score": job.score.overall_score,
+            "keyword_score": job.score.keyword_score,
+            "semantic_score": job.score.semantic_score,
+            "algorithm": job.score.algorithm,
+        }
+
+    return summary
