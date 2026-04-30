@@ -13,6 +13,7 @@ import pytest
 from pathlib import Path
 from unittest.mock import patch
 
+import config
 from models import Job, JobStatus, RequirementItem, SCHEMA_VERSION
 from orchestrator import Orchestrator
 from persistence import JsonJobStore
@@ -206,8 +207,18 @@ class TestBackwardCompatRealOutput:
     @pytest.fixture
     def real_selection_log(self):
         candidates = [
-            Path("/Users/felixhyy/Desktop/work/applications/03272026/Teradyne_Mechanical_Engineer/note/selection_log.json"),
-            Path("/Users/felixhyy/Desktop/work/applications/03272026/Olio_Labs_Mechanical_Engineer/note/selection_log.json"),
+            config.RESUME_GENERATOR_DIR
+            / "applications"
+            / "03272026"
+            / "Teradyne_Mechanical_Engineer"
+            / "note"
+            / "selection_log.json",
+            config.RESUME_GENERATOR_DIR
+            / "applications"
+            / "03272026"
+            / "Olio_Labs_Mechanical_Engineer"
+            / "note"
+            / "selection_log.json",
         ]
         for c in candidates:
             if c.exists():

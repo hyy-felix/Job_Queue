@@ -111,13 +111,28 @@ class StateTransitionError(Exception):
     pass
 
 
-def _is_linkedin_easy_apply(url: str) -> bool:
-    """Detect LinkedIn job URLs that use Easy Apply."""
+def _is_linkedin_url(url: str) -> bool:
+    """Detect LinkedIn job URLs for source metadata only."""
     try:
         parsed = urlparse(url)
         return "linkedin.com" in parsed.netloc.lower()
     except Exception:
         return False
+
+
+def _normalized_apply_method(method: str | None) -> str:
+    """Normalize extraction apply_method into the supported contract."""
+    normalized = (method or "").strip().lower().replace("-", "_").replace(" ", "_")
+    if normalized == "easyapply":
+        normalized = "easy_apply"
+    if normalized in {"easy_apply", "apply", "unknown"}:
+        return normalized
+    return "unknown"
+
+
+def _should_skip_generation(job: Job) -> bool:
+    """Easy Apply is the only signal that skips resume generation."""
+    return _normalized_apply_method(job.extraction.apply_method) == "easy_apply"
 
 
 def _build_no_proxy_env() -> dict:
@@ -328,7 +343,7 @@ class Orchestrator:
                     extraction_data = self._parse_extraction_output(output_path)
                     if extraction_data.job_description:
                         job.extraction = extraction_data
-                        job.is_linkedin = _is_linkedin_easy_apply(job.source_url)
+                        job.is_linkedin = _is_linkedin_url(job.source_url)
                         job = self._transition(job, JobStatus.SCRAPED)
                     else:
                         job.error.last_error = "Extraction succeeded but no job_description found"
@@ -366,6 +381,7 @@ class Orchestrator:
                 salary=raw.get("salary"),
                 location=raw.get("location"),
                 job_description=raw.get("job_description"),
+                apply_method=_normalized_apply_method(raw.get("apply_method")),
                 scraped_at=datetime.now(timezone.utc),
             )
         except Exception as exc:
@@ -387,15 +403,15 @@ class Orchestrator:
 
                 job = queued[0]
 
-                # LinkedIn Easy Apply: skip generation entirely
+                # Easy Apply: skip generation entirely. Plain "APPLY" still generates.
                 job = self.store.get_job(job.job_id)
-                if job.is_linkedin:
+                if _should_skip_generation(job):
                     job.generation = GenerationData(
                         completed_at=datetime.now(timezone.utc),
                     )
                     job = self._transition(job, JobStatus.GENERATED)
                     logger.info(
-                        "LinkedIn Easy Apply — skipping generation for job %s", job.job_id
+                        "Easy Apply detected — skipping generation for job %s", job.job_id
                     )
                     await self._emit_event("job_updated", _job_summary(job))
                     continue
@@ -433,7 +449,7 @@ class Orchestrator:
         role = job.extraction.role_title or "Unknown"
 
         # Snapshot applications/ tree before invocation
-        apps_dir = config.WORK_DIR / "applications"
+        apps_dir = config.RESUME_GENERATOR_DIR / "applications"
         pre_dirs = set()
         if apps_dir.exists():
             for date_dir in apps_dir.iterdir():
@@ -470,7 +486,7 @@ class Orchestrator:
                     *cmd,
                     stdout=log_file,
                     stderr=asyncio.subprocess.STDOUT,
-                    cwd=str(config.WORK_DIR),
+                    cwd=str(config.RESUME_GENERATOR_DIR),
                     start_new_session=True,
                 )
                 job.worker = WorkerInfo(pid=proc.pid, pgid=proc.pid)
@@ -767,6 +783,8 @@ class Orchestrator:
         for key in ("role_title", "company_name", "salary", "location", "job_description"):
             if key in updates and updates[key] is not None:
                 setattr(job.extraction, key, updates[key])
+        if "apply_method" in updates and updates["apply_method"] is not None:
+            job.extraction.apply_method = _normalized_apply_method(updates["apply_method"])
         job = self.store.update_job(job)
         return job
 
@@ -909,7 +927,7 @@ class Orchestrator:
 
         Validates artifacts exist before transitioning. Does NOT auto-trigger —
         must be called explicitly via POST /api/jobs/{id}/apply.
-        LinkedIn URLs route to MANUAL_APPLY; others dispatch apply subprocess.
+        Easy Apply routes to MANUAL_APPLY; others dispatch apply subprocess.
         """
         job = self.store.get_job(job_id)
         if job.status not in {JobStatus.GENERATED, JobStatus.SCORED, JobStatus.APPLY_FAILED}:
@@ -917,21 +935,13 @@ class Orchestrator:
                 f"Cannot apply from {job.status.value} state"
             )
 
-        # Validate required artifacts exist
-        metadata_path = config.JOBS_DIR / job_id / "output" / "metadata.json"
-        if not metadata_path.exists():
-            raise FileNotFoundError(f"No output metadata for job {job_id}")
-        metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
-        resume_pdf = metadata.get("resume_pdf", "")
-        if not resume_pdf or not Path(resume_pdf).exists():
-            raise FileNotFoundError(f"Resume PDF not found for job {job_id}")
-
-        # LinkedIn: hand off to user's daily browser immediately
-        if _is_linkedin_easy_apply(job.source_url):
+        # Easy Apply intentionally skips generation, so no output artifacts are
+        # expected before handing off to the user's browser.
+        if _should_skip_generation(job):
             job = self._transition(job, JobStatus.MANUAL_APPLY)
             logger.info(
-                "LinkedIn detected for job %s — handing off to daily browser. "
-                "Resume: %s", job_id, resume_pdf,
+                "Easy Apply detected for job %s — handing off to daily browser.",
+                job_id,
             )
             try:
                 subprocess.run(["open", job.source_url], check=False)
@@ -940,7 +950,16 @@ class Orchestrator:
             await self._emit_event("job_updated", _job_summary(job))
             return job
 
-        # Non-LinkedIn: dispatch apply subprocess
+        # Validate required artifacts exist before apply automation.
+        metadata_path = config.JOBS_DIR / job_id / "output" / "metadata.json"
+        if not metadata_path.exists():
+            raise FileNotFoundError(f"No output metadata for job {job_id}")
+        metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+        resume_pdf = metadata.get("resume_pdf", "")
+        if not resume_pdf or not Path(resume_pdf).exists():
+            raise FileNotFoundError(f"Resume PDF not found for job {job_id}")
+
+        # Dispatch apply subprocess
         job = self._transition(job, JobStatus.APPLYING)
         await self._emit_event("job_updated", _job_summary(job))
         asyncio.create_task(self._dispatch_apply(job_id))
@@ -949,7 +968,7 @@ class Orchestrator:
     async def _dispatch_apply(self, job_id: str) -> None:
         """Run the apply subprocess. Mirrors _run_extraction pattern.
 
-        Only called for non-LinkedIn URLs (LinkedIn is handled by queue_apply).
+        Only called after artifact validation (Easy Apply is handled by queue_apply).
         Runs browser-use, then optionally the review agent for confidence scoring
         (requires CDP + API key).
         """
@@ -1126,7 +1145,7 @@ class Orchestrator:
             logger.warning("Review agent failed for job %s: %s", job.job_id, exc)
             return False
 
-    # ── Review approval / LinkedIn confirmation ─────────────
+    # ── Review approval / manual apply confirmation ─────────
 
     async def approve_apply(self, job_id: str, action: str, reason: str = "") -> Job:
         """Approve or reject a job in REVIEW_REQUIRED state.
@@ -1154,7 +1173,7 @@ class Orchestrator:
         return job
 
     async def mark_applied(self, job_id: str) -> Job:
-        """Mark a MANUAL_APPLY job as APPLIED (user confirms they applied on LinkedIn)."""
+        """Mark a MANUAL_APPLY job as APPLIED after user confirmation."""
         job = self.store.get_job(job_id)
         if job.status != JobStatus.MANUAL_APPLY:
             raise StateTransitionError(
@@ -1196,6 +1215,7 @@ def _job_summary(job: Job) -> dict:
         "company_name": job.extraction.company_name,
         "location": job.extraction.location,
         "salary": job.extraction.salary,
+        "apply_method": job.extraction.apply_method,
         "error": job.error.last_error,
     }
 

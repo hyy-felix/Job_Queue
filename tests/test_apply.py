@@ -10,8 +10,21 @@ import pytest
 from pathlib import Path
 from unittest.mock import AsyncMock, patch, PropertyMock
 
-from models import Job, JobStatus, ApplyData, ReviewData, WorkerInfo, is_workflow_terminal
-from orchestrator import Orchestrator, StateTransitionError, _is_linkedin_easy_apply
+from models import (
+    Job,
+    JobStatus,
+    ApplyData,
+    ExtractionData,
+    ReviewData,
+    WorkerInfo,
+    is_workflow_terminal,
+)
+from orchestrator import (
+    Orchestrator,
+    StateTransitionError,
+    _is_linkedin_url,
+    _should_skip_generation,
+)
 from persistence import JsonJobStore
 
 
@@ -153,13 +166,33 @@ class TestQueueApplyValidation:
 
 class TestLinkedInQueueApply:
 
-    def test_linkedin_url_goes_to_manual_apply(self, orch, store, tmp_jobs_dir):
-        job = _make_generated_job(store, tmp_jobs_dir)
-        job.source_url = "https://www.linkedin.com/jobs/view/123"
+    def test_easy_apply_goes_to_manual_apply_without_artifacts(self, orch, store):
+        job = store.create_job("https://www.linkedin.com/jobs/view/123")
+        for status in [
+            JobStatus.EXTRACTING, JobStatus.SCRAPED,
+            JobStatus.QUEUED, JobStatus.GENERATED,
+        ]:
+            job.status = status
+            store.update_job(job)
+        job.extraction = ExtractionData(apply_method="easy_apply")
         store.update_job(job)
         with patch('orchestrator.subprocess'):
             result = _run(orch.queue_apply(job.job_id))
         assert result.status == JobStatus.MANUAL_APPLY
+
+    def test_linkedin_apply_requires_generated_artifacts(self, orch, store):
+        job = store.create_job("https://www.linkedin.com/jobs/view/123")
+        for status in [
+            JobStatus.EXTRACTING, JobStatus.SCRAPED,
+            JobStatus.QUEUED, JobStatus.GENERATED,
+        ]:
+            job.status = status
+            store.update_job(job)
+        job.extraction = ExtractionData(apply_method="apply")
+        store.update_job(job)
+
+        with pytest.raises(FileNotFoundError, match="No output metadata"):
+            _run(orch.queue_apply(job.job_id))
 
     def test_non_linkedin_url_goes_to_applying(self, orch, store, tmp_jobs_dir):
         job = _make_generated_job(store, tmp_jobs_dir)
@@ -238,25 +271,54 @@ class TestNoAutoApply:
 class TestLinkedInDetection:
 
     def test_linkedin_com_detected(self):
-        assert _is_linkedin_easy_apply("https://www.linkedin.com/jobs/view/123")
+        assert _is_linkedin_url("https://www.linkedin.com/jobs/view/123")
 
     def test_linkedin_no_www(self):
-        assert _is_linkedin_easy_apply("https://linkedin.com/jobs/view/456")
+        assert _is_linkedin_url("https://linkedin.com/jobs/view/456")
 
     def test_country_subdomain(self):
-        assert _is_linkedin_easy_apply("https://ca.linkedin.com/jobs/view/789")
+        assert _is_linkedin_url("https://ca.linkedin.com/jobs/view/789")
 
     def test_non_linkedin_url(self):
-        assert not _is_linkedin_easy_apply("https://example.com/jobs/apply")
+        assert not _is_linkedin_url("https://example.com/jobs/apply")
 
     def test_linkedin_in_path_not_detected(self):
-        assert not _is_linkedin_easy_apply("https://example.com/linkedin/jobs")
+        assert not _is_linkedin_url("https://example.com/linkedin/jobs")
 
     def test_empty_url(self):
-        assert not _is_linkedin_easy_apply("")
+        assert not _is_linkedin_url("")
 
     def test_invalid_url(self):
-        assert not _is_linkedin_easy_apply("not a url")
+        assert not _is_linkedin_url("not a url")
+
+
+class TestExtractionApplyMethodParsing:
+
+    def test_parse_output_normalizes_linkedin_apply_button(self, orch, tmp_path):
+        output = tmp_path / "extraction.json"
+        output.write_text(json.dumps({
+            "role_title": "Engineer",
+            "company_name": "Acme",
+            "job_description": "Build things",
+            "apply_method": "APPLY",
+        }))
+
+        extraction = orch._parse_extraction_output(output)
+
+        assert extraction.apply_method == "apply"
+
+    def test_parse_output_normalizes_easy_apply_button(self, orch, tmp_path):
+        output = tmp_path / "extraction.json"
+        output.write_text(json.dumps({
+            "role_title": "Engineer",
+            "company_name": "Acme",
+            "job_description": "Build things",
+            "apply_method": "Easy Apply",
+        }))
+
+        extraction = orch._parse_extraction_output(output)
+
+        assert extraction.apply_method == "easy_apply"
 
 
 def _make_review_required_job(store, tmp_jobs_dir):
@@ -332,47 +394,50 @@ class TestCrashRecoveryNewStates:
 
 class TestLinkedInGenerationSkip:
 
-    def test_linkedin_job_can_skip_to_generated(self, orch, store):
-        """A QUEUED LinkedIn job can be moved directly to GENERATED."""
+    def test_easy_apply_skips_generation(self, store):
+        """Easy Apply is the only generation-skip signal."""
         job = store.create_job("https://www.linkedin.com/jobs/view/123")
-        for status in [
-            JobStatus.EXTRACTING, JobStatus.SCRAPED, JobStatus.QUEUED,
-        ]:
-            job.status = status
-            store.update_job(job)
+        job.extraction = ExtractionData(apply_method="easy_apply")
         job.is_linkedin = True
         store.update_job(job)
 
-        from models import GenerationData
-        from datetime import datetime, timezone
-        job = store.get_job(job.job_id)
-        job.status = JobStatus.GENERATING
-        store.update_job(job)
-        job.generation = GenerationData(completed_at=datetime.now(timezone.utc))
-        orch._transition(job, JobStatus.GENERATED)
+        assert _should_skip_generation(job) is True
 
-        result = store.get_job(job.job_id)
-        assert result.status == JobStatus.GENERATED
-        assert result.generation.completed_at is not None
-
-    def test_non_linkedin_job_not_skipped(self, orch, store):
-        job = store.create_job("https://example.com/job/456")
-        for status in [
-            JobStatus.EXTRACTING, JobStatus.SCRAPED, JobStatus.QUEUED,
-        ]:
-            job.status = status
-            store.update_job(job)
-        job.is_linkedin = False
+    def test_easy_apply_display_text_skips_generation(self, store):
+        job = store.create_job("https://www.linkedin.com/jobs/view/123")
+        job.extraction = ExtractionData(apply_method="Easy Apply")
+        job.is_linkedin = True
         store.update_job(job)
 
-        result = store.get_job(job.job_id)
-        assert result.is_linkedin is False
-        assert result.status == JobStatus.QUEUED
+        assert _should_skip_generation(job) is True
+
+    def test_linkedin_apply_does_not_skip_generation(self, store):
+        job = store.create_job("https://www.linkedin.com/jobs/view/456")
+        job.extraction = ExtractionData(apply_method="apply")
+        job.is_linkedin = True
+        store.update_job(job)
+
+        assert _should_skip_generation(job) is False
+
+    def test_linkedin_uppercase_apply_does_not_skip_generation(self, store):
+        job = store.create_job("https://www.linkedin.com/jobs/view/456")
+        job.extraction = ExtractionData(apply_method="APPLY")
+        job.is_linkedin = True
+        store.update_job(job)
+
+        assert _should_skip_generation(job) is False
+
+    def test_unknown_apply_method_does_not_skip_generation(self, store):
+        job = store.create_job("https://www.linkedin.com/jobs/view/789")
+        job.extraction = ExtractionData(apply_method="unknown")
+        job.is_linkedin = True
+        store.update_job(job)
+
+        assert _should_skip_generation(job) is False
 
     def test_is_linkedin_set_during_extraction(self, orch, store):
-        from orchestrator import _is_linkedin_easy_apply
-        assert _is_linkedin_easy_apply("https://www.linkedin.com/jobs/view/123") is True
-        assert _is_linkedin_easy_apply("https://example.com/jobs") is False
+        assert _is_linkedin_url("https://www.linkedin.com/jobs/view/123") is True
+        assert _is_linkedin_url("https://example.com/jobs") is False
 
 
 class TestCancelNewStates:

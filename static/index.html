@@ -51,16 +51,21 @@ textarea { width: 100%; height: 64px; border: 1px solid #ccc; border-radius: 4px
 .badge-extracting { background: #fef3c7; color: #92400e; }
 .badge-extraction_failed { background: #fee2e2; color: #991b1b; }
 .badge-ready_for_review { background: #ede9fe; color: #5b21b6; }
+.badge-scraped { background: #ede9fe; color: #5b21b6; }
 .badge-queued { background: #f3f4f6; color: #6b7280; }
 .badge-generating { background: #dbeafe; color: #1e40af; }
 .badge-generation_failed { background: #fee2e2; color: #991b1b; }
 .badge-completed { background: #dcfce7; color: #166534; }
+.badge-generated { background: #dcfce7; color: #166534; }
+.badge-scored { background: #dcfce7; color: #166534; }
 .badge-cancelled { background: #f3f4f6; color: #9ca3af; }
 /* Apply-phase badges */
 .badge-apply_queued { background: #fef3c7; color: #92400e; }
 .badge-applying { background: #dbeafe; color: #1e40af; }
 .badge-applied { background: #dcfce7; color: #166534; }
 .badge-apply_failed { background: #fee2e2; color: #991b1b; }
+.badge-manual_apply { background: #fef3c7; color: #92400e; }
+.badge-review_required { background: #ede9fe; color: #5b21b6; }
 
 .job-info { flex: 1; min-width: 0; }
 .job-title { font-size: 13px; font-weight: 500; }
@@ -226,8 +231,8 @@ function renderStatusBar(counts, total) {
     { label: 'Queued', value: (counts.submitted||0) + (counts.queued||0), cls: '' },
     { label: 'Extracting', value: counts.extracting||0, cls: 'active' },
     { label: 'Generating', value: counts.generating||0, cls: 'active' },
-    { label: 'Review', value: counts.ready_for_review||0, cls: '' },
-    { label: 'Completed', value: counts.completed||0, cls: 'done' },
+    { label: 'Review', value: (counts.ready_for_review||0) + (counts.scraped||0), cls: '' },
+    { label: 'Completed', value: (counts.completed||0) + (counts.generated||0) + (counts.scored||0), cls: 'done' },
     { label: 'Applying', value: (counts.apply_queued||0) + (counts.applying||0), cls: 'active' },
     { label: 'Applied', value: counts.applied||0, cls: 'done' },
     { label: 'Failed', value: failCount, cls: 'fail' },
@@ -235,6 +240,14 @@ function renderStatusBar(counts, total) {
   bar.innerHTML = stats.map(s =>
     `<div class="stat"><div class="stat-num ${s.cls}">${s.value}</div><div class="stat-label">${s.label}</div></div>`
   ).join('');
+}
+
+function isGeneratedStatus(status) {
+  return ['generated', 'completed'].includes(status);
+}
+
+function isEasyApplyJob(job) {
+  return job.extraction?.apply_method === 'easy_apply';
 }
 
 function renderJobList() {
@@ -251,16 +264,16 @@ function renderJobList() {
     const loc = j.extraction?.location || '';
     const meta = [company, loc].filter(Boolean).join(' \u2022 ') || j.source_url;
     const isActive = ['extracting', 'generating', 'applying'].includes(j.status);
-    const canApply = ['completed', 'apply_failed'].includes(j.status);
+    const canApply = isGeneratedStatus(j.status) || ['scored', 'apply_failed'].includes(j.status);
 
     let rowActions = '';
     // Open URL link (always show if URL exists)
     rowActions += `<a class="url-link" href="${esc(j.source_url)}" target="_blank" rel="noopener"
                      onclick="event.stopPropagation()" title="Open job posting">\u2197</a>`;
-    // LinkedIn button (open Easy Apply) or Apply button
-    if (j.is_linkedin && j.status === 'completed') {
+    // Easy Apply handoff or Apply button
+    if (isEasyApplyJob(j) && isGeneratedStatus(j.status)) {
       rowActions += `<button class="btn-linkedin" onclick="event.stopPropagation(); window.open('${esc(j.source_url)}', '_blank')"
-                       aria-label="Open LinkedIn Easy Apply">LinkedIn \u25b8</button>`;
+                       aria-label="Open Easy Apply">Easy Apply \u25b8</button>`;
     } else if (canApply) {
       rowActions += `<button class="btn-apply" onclick="event.stopPropagation(); applyJob('${j.job_id}', '${esc(title)}', '${esc(company)}')"
                        aria-label="Auto-apply to ${esc(title)} at ${esc(company)}">Apply \u25b8</button>`;
@@ -279,7 +292,7 @@ function renderJobList() {
 }
 
 function renderDetail(job) {
-  const editable = ['ready_for_review', 'extraction_failed'].includes(job.status);
+  const editable = ['scraped', 'ready_for_review', 'extraction_failed'].includes(job.status);
   document.getElementById('detail-title').textContent =
     `${job.extraction?.role_title || 'Job'} @ ${job.extraction?.company_name || 'Unknown'}`;
 
@@ -303,14 +316,14 @@ function renderDetail(job) {
   if (['extraction_failed', 'generation_failed', 'apply_failed'].includes(job.status)) {
     btns += `<button class="btn" onclick="retryJob('${job.job_id}')">Retry</button>`;
   }
-  const canCancel = !['completed', 'cancelled', 'applied'].includes(job.status);
+  const canCancel = !['generated', 'completed', 'cancelled', 'applied'].includes(job.status);
   if (canCancel) {
     btns += `<button class="btn" onclick="cancelJob('${job.job_id}')">Cancel</button>`;
   }
-  // LinkedIn button or Apply button in detail panel
-  if (job.is_linkedin && job.status === 'completed') {
-    btns += `<button class="btn btn-linkedin" onclick="window.open('${esc(job.source_url)}', '_blank')">LinkedIn Easy Apply \u25b8</button>`;
-  } else if (['completed', 'apply_failed'].includes(job.status)) {
+  // Easy Apply handoff or Apply button in detail panel
+  if (isEasyApplyJob(job) && isGeneratedStatus(job.status)) {
+    btns += `<button class="btn btn-linkedin" onclick="window.open('${esc(job.source_url)}', '_blank')">Easy Apply \u25b8</button>`;
+  } else if (isGeneratedStatus(job.status) || ['scored', 'apply_failed'].includes(job.status)) {
     const role = job.extraction?.role_title || 'this job';
     const comp = job.extraction?.company_name || 'Unknown';
     btns += `<button class="btn btn-apply" onclick="applyJob('${job.job_id}', '${esc(role)}', '${esc(comp)}')">Auto-Apply \u25b8</button>`;
@@ -321,7 +334,7 @@ function renderDetail(job) {
   // Open job posting link in detail
   btns += `<a class="url-link" href="${esc(job.source_url)}" target="_blank" rel="noopener">\u2197 View Posting</a>`;
 
-  if (['completed', 'cancelled', 'applied', 'extraction_failed', 'generation_failed', 'apply_failed'].includes(job.status)) {
+  if (['generated', 'completed', 'cancelled', 'applied', 'extraction_failed', 'generation_failed', 'apply_failed'].includes(job.status)) {
     btns += `<button class="btn" style="color:#dc2626;border-color:#dc2626" onclick="deleteJob('${job.job_id}')">Delete</button>`;
   }
   actions.innerHTML = btns;

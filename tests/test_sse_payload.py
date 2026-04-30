@@ -38,11 +38,13 @@ class TestSSEPayloadBasic:
             location="SF",
             salary="$150k",
             job_description="We need a Python expert with 5 years experience.",
+            apply_method="apply",
         )
         summary = _job_summary(job)
         assert summary["status"] == "scraped"
         assert summary["role_title"] == "Engineer"
         assert summary["company_name"] == "Acme"
+        assert summary["apply_method"] == "apply"
         assert "jd_text" in summary
         assert "Python expert" in summary["jd_text"]
 

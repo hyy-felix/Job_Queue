@@ -75,6 +75,13 @@ class TestJobModel:
         assert restored.extraction.role_title == "Engineer"
         assert restored.extraction.company_name == "Acme"
 
+    def test_extraction_apply_method_serialization(self):
+        job = Job(source_url="https://www.linkedin.com/jobs/view/123")
+        job.extraction = ExtractionData(apply_method="apply")
+        json_str = job.model_dump_json()
+        restored = Job.model_validate_json(json_str)
+        assert restored.extraction.apply_method == "apply"
+
     def test_serialization_with_new_fields(self):
         job = Job(source_url="https://example.com/job/1")
         job.generation = GenerationData(
@@ -296,7 +303,7 @@ class TestNewStates:
         assert JobStatus.REVIEW_REQUIRED == "review_required"
 
     def test_manual_apply_transitions(self):
-        # GENERATED/SCORED -> MANUAL_APPLY (LinkedIn handoff)
+        # GENERATED/SCORED -> MANUAL_APPLY (Easy Apply handoff)
         assert is_legal_transition(JobStatus.GENERATED, JobStatus.MANUAL_APPLY)
         assert is_legal_transition(JobStatus.SCORED, JobStatus.MANUAL_APPLY)
         # MANUAL_APPLY -> APPLIED (user confirms)
@@ -408,8 +415,8 @@ class TestReviewData:
         assert len(restored.review.fields) == 1
 
 
-class TestLinkedInSkip:
-    """Tests for LinkedIn Easy Apply generation skip."""
+class TestLinkedInMetadata:
+    """Tests for LinkedIn source metadata."""
 
     def test_is_linkedin_default_false(self):
         job = Job(source_url="https://example.com/job/1")

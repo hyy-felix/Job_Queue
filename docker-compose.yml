@@ -6,16 +6,14 @@ services:
     volumes:
       # Persist job data across restarts
       - ./jobs:/app/jobs
-      # Mount work directory for generation subprocess
-      - /Users/felixhyy/Desktop/work:/work:ro
+      # Mount resume generator for generation subprocess
+      - "/Volumes/Hyy Mac mini HD/Program Data/GitHub/Re-Generator:/resume-generator:ro"
       # Mount browser-use for extraction subprocess
       - "/Volumes/Hyy Mac mini HD/Program Data/GitHub/browser-use:/browser-use:ro"
-      # Mount the apply-jd SKILL.md for generation contract
-      - /Users/felixhyy/Desktop/work/.claude/skills/apply-jd/SKILL.md:/app/skill.md:ro
     environment:
       - JQ_PORT=8080
       - JQ_HOST=0.0.0.0
-      - JQ_WORK_DIR=/work
+      - JQ_RESUME_GENERATOR_DIR=/resume-generator
       - JQ_BROWSER_USE_REPO=/browser-use
       # CDP connects to host Chrome (host.docker.internal on Docker Desktop)
       - JQ_CDP_URL=http://host.docker.internal:9222

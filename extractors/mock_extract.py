@@ -35,6 +35,7 @@ def main():
         "company_name": company,
         "salary": salary,
         "location": location,
+        "apply_method": "unknown",
         "job_description": (
             f"We are seeking a {role_title} to join {company}. "
             f"This role is based in {location}.\n\n"

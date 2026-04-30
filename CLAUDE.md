@@ -31,11 +31,11 @@ SUBMITTED → EXTRACTING → SCRAPED → QUEUED → GENERATING → GENERATED →
                                                           APPLYING   APPLY_FAILED
                                                                        ↑ retry
 
-GENERATED/SCORED → MANUAL_APPLY → APPLIED   (LinkedIn)
+GENERATED/SCORED → MANUAL_APPLY → APPLIED   (Easy Apply)
 Any non-terminal → CANCELLED
 ```
 
-**Removed statuses (v1→v2):** `READY_FOR_REVIEW` → `SCRAPED`, `COMPLETED` → `GENERATED`, `APPLY_QUEUED` → removed (LinkedIn routing now inline in `queue_apply`). New: `SCORED`.
+**Removed statuses (v1→v2):** `READY_FOR_REVIEW` → `SCRAPED`, `COMPLETED` → `GENERATED`, `APPLY_QUEUED` → removed (Easy Apply routing now inline in `queue_apply`). New: `SCORED`.
 
 ## SSE Event Payload
 
@@ -122,7 +122,7 @@ Graceful fallback: if SKILL.md is missing, uses free-form prompt.
 ## External Systems (DO NOT MODIFY)
 
 1. **browser-use** at `$JQ_BROWSER_USE_REPO` — AI browser agent for extraction
-2. **Claude workflow** at `$JQ_WORK_DIR` (`/Users/felixhyy/Desktop/work`) — resume/cover letter generator
+2. **Resume generator** at `$JQ_RESUME_GENERATOR_DIR` (`/Volumes/Hyy Mac mini HD/Program Data/GitHub/Re-Generator`) — resume/cover letter generator
 
 ## Commands
 
@@ -153,7 +153,7 @@ python3 -m pytest tests/ -v
 | `JQ_CDP_URL` | (empty) | CDP URL for persistent Chrome (e.g., `http://localhost:9222`) |
 | `JQ_MOCK_EXTRACTION` | false | Use mock extraction (no LLM needed) |
 | `JQ_BROWSER_USE_REPO` | (hardcoded path) | Path to browser-use repo |
-| `JQ_WORK_DIR` | (hardcoded path) | Path to Claude workflow directory |
+| `JQ_RESUME_GENERATOR_DIR` | `/Volumes/Hyy Mac mini HD/Program Data/GitHub/Re-Generator` | Path to resume generator repo |
 | `JQ_EXTRACTION_TIMEOUT` | 600 | Extraction timeout in seconds |
 | `JQ_GENERATION_TIMEOUT` | 3600 | Generation timeout in seconds |
 | `JQ_APPLY_TIMEOUT` | 600 | Apply subprocess timeout in seconds |

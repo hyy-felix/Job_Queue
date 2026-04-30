@@ -11,7 +11,7 @@ State machine (ASCII diagram):
                                                                ↓          ↑ retry
                                                            (see above)
 
-  GENERATED/SCORED → MANUAL_APPLY → APPLIED   (LinkedIn handoff)
+  GENERATED/SCORED → MANUAL_APPLY → APPLIED   (Easy Apply handoff)
   Any non-terminal → CANCELLED
 """
 
@@ -44,7 +44,7 @@ class JobStatus(str, enum.Enum):
     APPLIED = "applied"
     APPLY_FAILED = "apply_failed"
     # ── Confidence-gated apply ──
-    MANUAL_APPLY = "manual_apply"       # LinkedIn handoff — user applies manually
+    MANUAL_APPLY = "manual_apply"       # Easy Apply handoff — user applies manually
     REVIEW_REQUIRED = "review_required" # Post-fill review — waiting for user approval
 
 
@@ -105,7 +105,7 @@ LEGAL_TRANSITIONS: dict[JobStatus, set[JobStatus]] = {
     },
     JobStatus.QUEUED: {
         JobStatus.GENERATING,
-        JobStatus.GENERATED,   # LinkedIn skip — no actual generation
+        JobStatus.GENERATED,   # Easy Apply skip — no actual generation
         JobStatus.CANCELLED,
     },
     JobStatus.GENERATING: {
@@ -118,14 +118,14 @@ LEGAL_TRANSITIONS: dict[JobStatus, set[JobStatus]] = {
         JobStatus.QUEUED,       # retry (via queue)
         JobStatus.CANCELLED,
     },
-    # GENERATED: artifacts exist. Can score, apply directly, or apply via LinkedIn.
+    # GENERATED: artifacts exist. Can score, apply directly, or manual handoff.
     JobStatus.GENERATED: {
         JobStatus.SCORED,
         JobStatus.APPLYING,
         JobStatus.MANUAL_APPLY,
         JobStatus.CANCELLED,
     },
-    # SCORED: score computed. Can apply or apply via LinkedIn.
+    # SCORED: score computed. Can apply or manual handoff.
     JobStatus.SCORED: {
         JobStatus.APPLYING,
         JobStatus.MANUAL_APPLY,
@@ -162,6 +162,7 @@ class ExtractionData(BaseModel):
     salary: Optional[str] = None
     location: Optional[str] = None
     job_description: Optional[str] = None
+    apply_method: Optional[str] = None  # "easy_apply", "apply", or "unknown"
     scraped_at: Optional[datetime] = None
 
 
@@ -188,6 +189,7 @@ class ExtractionEditRequest(BaseModel):
     salary: Optional[str] = None
     location: Optional[str] = None
     job_description: Optional[str] = None
+    apply_method: Optional[str] = None
 
 
 class GenerationData(BaseModel):

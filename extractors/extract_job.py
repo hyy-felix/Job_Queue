@@ -95,12 +95,16 @@ async def extract(url: str, output_path: str, cdp_url: str = "") -> None:
        Include ALL sections: overview, responsibilities, requirements,
        qualifications, benefits. This must be comprehensive — multiple paragraphs.
        Do NOT summarize. Copy the actual text from the page.
+    6. apply_method: Inspect the visible application button/state on the page.
+       Return "easy_apply" only when the page shows an Easy Apply button or
+       equivalent Easy Apply flow. Return "apply" when the page shows APPLY or
+       Apply. Return "unknown" if unclear.
 
     If the page shows a 404 error or the job posting is not found, set
     job_description to a message explaining the page was not found.
 
     Return ONLY a valid JSON object with these exact keys:
-    role_title, company_name, salary, location, job_description
+    role_title, company_name, salary, location, job_description, apply_method
 
     No markdown formatting. No explanation. Just the JSON.
     """
@@ -127,6 +131,7 @@ async def extract(url: str, output_path: str, cdp_url: str = "") -> None:
         "salary": None,
         "location": None,
         "job_description": None,
+        "apply_method": "unknown",
         "scraped_at": datetime.now(timezone.utc).isoformat(),
     }
 
@@ -142,7 +147,7 @@ async def extract(url: str, output_path: str, cdp_url: str = "") -> None:
 
         try:
             parsed = json.loads(text)
-            for key in ("role_title", "company_name", "salary", "location", "job_description"):
+            for key in ("role_title", "company_name", "salary", "location", "job_description", "apply_method"):
                 if key in parsed:
                     extracted[key] = parsed[key]
         except json.JSONDecodeError:

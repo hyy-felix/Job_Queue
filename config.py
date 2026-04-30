@@ -18,12 +18,16 @@ BROWSER_USE_REPO = Path(
     )
 )
 
-WORK_DIR = Path(
-    os.environ.get(
-        "JQ_WORK_DIR",
-        "/Users/felixhyy/Desktop/work",
-    )
+RESUME_GENERATOR_ENV_VAR = "JQ_RESUME_GENERATOR_DIR"
+DEFAULT_RESUME_GENERATOR_DIR = Path(
+    "/Volumes/Hyy Mac mini HD/Program Data/GitHub/Re-Generator"
 )
+RESUME_GENERATOR_DIR = Path(
+    os.environ.get(
+        RESUME_GENERATOR_ENV_VAR,
+        str(DEFAULT_RESUME_GENERATOR_DIR),
+    )
+).expanduser()
 
 CLAUDE_CLI = os.environ.get("JQ_CLAUDE_CLI", "claude")
 
@@ -99,6 +103,8 @@ def jd_temp_path(job_id: str) -> Path:
 
 
 # ── Generation contract ──────────────────────────────────
-# Path to apply-jd skill in the work project.  When present, injected via
+# Path to apply-jd skill in the resume generator.  When present, injected via
 # --append-system-prompt-file for deterministic workflow invocation.
-APPLY_JD_SKILL_FILE = WORK_DIR / ".claude" / "skills" / "apply-jd" / "SKILL.md"
+APPLY_JD_SKILL_FILE = (
+    RESUME_GENERATOR_DIR / ".claude" / "skills" / "apply-jd" / "SKILL.md"
+)

@@ -37,9 +37,16 @@ class TestPortDefault:
 
 class TestSkillFilePath:
     def test_skill_file_path_constructed(self):
-        """APPLY_JD_SKILL_FILE points into work's .claude/skills/apply-jd/."""
+        """APPLY_JD_SKILL_FILE points into the generator's apply-jd skill."""
         expected_suffix = Path(".claude") / "skills" / "apply-jd" / "SKILL.md"
-        assert config.APPLY_JD_SKILL_FILE == config.WORK_DIR / expected_suffix
+        assert config.APPLY_JD_SKILL_FILE == config.RESUME_GENERATOR_DIR / expected_suffix
+
+    def test_resume_generator_default_path(self):
+        """The generator defaults to the migrated Re-Generator repo."""
+        assert config.RESUME_GENERATOR_ENV_VAR == "JQ_RESUME_GENERATOR_DIR"
+        assert config.DEFAULT_RESUME_GENERATOR_DIR == Path(
+            "/Volumes/Hyy Mac mini HD/Program Data/GitHub/Re-Generator"
+        )
 
 
 # ── Validation Tests ──────────────────────────────────────────
@@ -58,7 +65,7 @@ class TestValidateAndCopy:
         (job_dir / "state").mkdir(parents=True)
         (job_dir / "output").mkdir(parents=True)
 
-        # Fake output folder (what work/applications/ produces)
+        # Fake output folder (what the generator's applications/ produces)
         output_folder = tmp_path / "applications" / "03292026" / "Test_Corp_Engineer"
         (output_folder / "note").mkdir(parents=True)
 
@@ -222,8 +229,8 @@ class TestBackwardCompatibility:
     def real_output_check(self):
         """Check a real generation output folder if it exists."""
         candidates = [
-            Path("/Users/felixhyy/Desktop/work/applications/03272026/Teradyne_Mechanical_Engineer"),
-            Path("/Users/felixhyy/Desktop/work/applications/03272026/Olio_Labs_Mechanical_Engineer"),
+            config.RESUME_GENERATOR_DIR / "applications" / "03272026" / "Teradyne_Mechanical_Engineer",
+            config.RESUME_GENERATOR_DIR / "applications" / "03272026" / "Olio_Labs_Mechanical_Engineer",
         ]
         for c in candidates:
             if c.exists():
