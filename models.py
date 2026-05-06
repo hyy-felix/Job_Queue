@@ -11,6 +11,7 @@ State machine (ASCII diagram):
                                                                ↓          ↑ retry
                                                            (see above)
 
+  GENERATING → NEEDS_BULLET_APPROVAL → QUEUED   (retry after source-bullet approval)
   GENERATED/SCORED → MANUAL_APPLY → APPLIED   (Easy Apply handoff)
   Any non-terminal → CANCELLED
 """
@@ -36,6 +37,7 @@ class JobStatus(str, enum.Enum):
     QUEUED = "queued"
     GENERATING = "generating"
     GENERATION_FAILED = "generation_failed"
+    NEEDS_BULLET_APPROVAL = "needs_bullet_approval"
     GENERATED = "generated"
     SCORED = "scored"
     CANCELLED = "cancelled"
@@ -111,6 +113,11 @@ LEGAL_TRANSITIONS: dict[JobStatus, set[JobStatus]] = {
     JobStatus.GENERATING: {
         JobStatus.GENERATED,
         JobStatus.GENERATION_FAILED,
+        JobStatus.NEEDS_BULLET_APPROVAL,
+        JobStatus.CANCELLED,
+    },
+    JobStatus.NEEDS_BULLET_APPROVAL: {
+        JobStatus.QUEUED,       # retry after approved source bullets are available
         JobStatus.CANCELLED,
     },
     JobStatus.GENERATION_FAILED: {

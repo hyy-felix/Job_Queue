@@ -31,11 +31,12 @@ SUBMITTED → EXTRACTING → SCRAPED → QUEUED → GENERATING → GENERATED →
                                                           APPLYING   APPLY_FAILED
                                                                        ↑ retry
 
+GENERATING → NEEDS_BULLET_APPROVAL → QUEUED   (retry after source-bullet approval)
 GENERATED/SCORED → MANUAL_APPLY → APPLIED   (Easy Apply)
 Any non-terminal → CANCELLED
 ```
 
-**Removed statuses (v1→v2):** `READY_FOR_REVIEW` → `SCRAPED`, `COMPLETED` → `GENERATED`, `APPLY_QUEUED` → removed (Easy Apply routing now inline in `queue_apply`). New: `SCORED`.
+**Removed statuses (v1→v2):** `READY_FOR_REVIEW` → `SCRAPED`, `COMPLETED` → `GENERATED`, `APPLY_QUEUED` → removed (Easy Apply routing now inline in `queue_apply`). New: `SCORED`, `NEEDS_BULLET_APPROVAL`.
 
 ## SSE Event Payload
 
@@ -163,5 +164,5 @@ python3 -m pytest tests/ -v
 ## Testing
 
 ```bash
-python3 -m pytest tests/ -v  # 174 tests: models, persistence, apply, generation, score, SSE, requirements
+python3 -m pytest tests/ -v  # full suite: models, persistence, apply, generation, score, SSE, requirements
 ```

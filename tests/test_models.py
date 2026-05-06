@@ -130,6 +130,10 @@ class TestStateMachine:
                     f"{from_state} -> {to_state} should be legal"
                 )
 
+    def test_every_status_has_transition_entry(self):
+        """Every valid status should be represented in the transition map."""
+        assert set(LEGAL_TRANSITIONS) == set(JobStatus)
+
     def test_workflow_terminal_states_have_no_transitions(self):
         for state in WORKFLOW_TERMINAL:
             assert LEGAL_TRANSITIONS[state] == set(), (
@@ -141,6 +145,27 @@ class TestStateMachine:
         assert not is_legal_transition(JobStatus.CANCELLED, JobStatus.QUEUED)
         assert not is_legal_transition(JobStatus.SUBMITTED, JobStatus.GENERATED)
         assert not is_legal_transition(JobStatus.QUEUED, JobStatus.EXTRACTING)
+
+    def test_needs_bullet_approval_transitions(self):
+        """Generation can block on bullet approval and retry through the queue."""
+        assert is_legal_transition(
+            JobStatus.GENERATING,
+            JobStatus.NEEDS_BULLET_APPROVAL,
+        )
+        assert is_legal_transition(JobStatus.NEEDS_BULLET_APPROVAL, JobStatus.QUEUED)
+        assert is_legal_transition(JobStatus.NEEDS_BULLET_APPROVAL, JobStatus.CANCELLED)
+
+    def test_needs_bullet_approval_blocks_downstream_states(self):
+        """Bullet approval must not skip directly into scoring or apply states."""
+        blocked_targets = [
+            getattr(JobStatus, "SCORING", None),
+            JobStatus.SCORED,
+            JobStatus.APPLYING,
+            JobStatus.APPLIED,
+        ]
+        for target in blocked_targets:
+            if target is not None:
+                assert not is_legal_transition(JobStatus.NEEDS_BULLET_APPROVAL, target)
 
     def test_happy_path_transitions(self):
         """submitted -> extracting -> scraped -> queued -> generating -> generated"""
@@ -237,6 +262,7 @@ class TestPredicates:
         assert is_url_closed(JobStatus.APPLIED) is True
         assert is_url_closed(JobStatus.CANCELLED) is True
         assert is_url_closed(JobStatus.MANUAL_APPLY) is True
+        assert is_url_closed(JobStatus.NEEDS_BULLET_APPROVAL) is False
         assert is_url_closed(JobStatus.APPLYING) is False
         assert is_url_closed(JobStatus.SUBMITTED) is False
 
@@ -285,7 +311,7 @@ class TestScoreData:
 
 
 class TestNewStates:
-    """Tests for MANUAL_APPLY, REVIEW_REQUIRED, SCRAPED, GENERATED, SCORED."""
+    """Tests for added workflow states."""
 
     def test_scraped_in_enum(self):
         assert JobStatus.SCRAPED == "scraped"
@@ -295,6 +321,9 @@ class TestNewStates:
 
     def test_scored_in_enum(self):
         assert JobStatus.SCORED == "scored"
+
+    def test_needs_bullet_approval_in_enum(self):
+        assert JobStatus.NEEDS_BULLET_APPROVAL == "needs_bullet_approval"
 
     def test_manual_apply_in_enum(self):
         assert JobStatus.MANUAL_APPLY == "manual_apply"
@@ -339,6 +368,12 @@ class TestNewStates:
         assert not is_workflow_terminal(JobStatus.REVIEW_REQUIRED)
 
     def test_review_happy_path(self):
+        assert is_legal_transition(JobStatus.APPLYING, JobStatus.REVIEW_REQUIRED)
+        assert is_legal_transition(JobStatus.REVIEW_REQUIRED, JobStatus.APPLIED)
+
+    def test_existing_human_review_states_still_behave(self):
+        assert is_legal_transition(JobStatus.GENERATED, JobStatus.MANUAL_APPLY)
+        assert is_legal_transition(JobStatus.MANUAL_APPLY, JobStatus.APPLIED)
         assert is_legal_transition(JobStatus.APPLYING, JobStatus.REVIEW_REQUIRED)
         assert is_legal_transition(JobStatus.REVIEW_REQUIRED, JobStatus.APPLIED)
 
