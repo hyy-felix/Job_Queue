@@ -104,6 +104,9 @@ class TestSSEPayloadBasic:
             output_folder="/path/to/output",
             completed_at=datetime(2026, 3, 29, tzinfo=timezone.utc),
             selection_log_path="/path/to/selection_log.json",
+            candidate_artifact_path="/path/to/resume_bullet_candidates.json",
+            candidate_generation_status="succeeded",
+            candidate_generation_error=None,
         )
         job.requirements = [RequirementItem(id="req_001", text="Python")]
 
@@ -114,6 +117,12 @@ class TestSSEPayloadBasic:
         assert summary["generation"]["resume_path"] is None
         assert summary["generation"]["cover_letter_path"] is None
         assert summary["generation"]["selection_log_path"] == "/path/to/selection_log.json"
+        assert (
+            summary["generation"]["candidate_artifact_path"]
+            == "/path/to/resume_bullet_candidates.json"
+        )
+        assert summary["generation"]["candidate_generation_status"] == "succeeded"
+        assert summary["generation"]["candidate_generation_error"] is None
         assert summary["requirements_count"] == 1
         assert "score" not in summary
 

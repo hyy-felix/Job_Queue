@@ -207,6 +207,9 @@ class GenerationData(BaseModel):
     resume_path: Optional[str] = None
     cover_letter_path: Optional[str] = None
     selection_log_path: Optional[str] = None
+    candidate_artifact_path: Optional[str] = None
+    candidate_generation_status: Optional[str] = None
+    candidate_generation_error: Optional[str] = None
 
 
 class ScoreData(BaseModel):

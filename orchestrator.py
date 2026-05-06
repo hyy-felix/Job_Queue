@@ -15,10 +15,12 @@ import os
 import signal
 import shutil
 import subprocess
+import urllib.error
+import urllib.request
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional
+from typing import Any
 from urllib.parse import urlparse
 
 
@@ -108,8 +110,16 @@ from persistence import JsonJobStore, JobNotFoundError
 
 logger = logging.getLogger("job_queue")
 
+CANDIDATE_ARTIFACT_NAME = "resume_bullet_candidates.json"
+CANDIDATE_API_DEFAULT_BASE_URL = "http://127.0.0.1:8000/api"
+CANDIDATE_API_TIMEOUT_SECONDS = 10.0
+
 
 class StateTransitionError(Exception):
+    pass
+
+
+class CandidateGenerationError(Exception):
     pass
 
 
@@ -122,7 +132,23 @@ class GenerationPackageResult:
     selection_log_path: Path | None = None
     resume_path: Path | None = None
     cover_letter_path: Path | None = None
+    candidate_artifact_path: Path | None = None
+    candidate_generation_status: str | None = None
+    candidate_generation_error: str | None = None
     error: str | None = None
+
+
+@dataclass(frozen=True)
+class CandidateGenerationResult:
+    """Candidate API call result stored in insufficiency package metadata."""
+
+    status: str
+    artifact_path: Path | None
+    candidate_count: int
+    error: str | None
+    api_url: str
+    requested_at: str
+    completed_at: str
 
 
 def _is_linkedin_url(url: str) -> bool:
@@ -537,6 +563,9 @@ class Orchestrator:
                             resume_path=str(package.resume_path) if package.resume_path else None,
                             cover_letter_path=str(package.cover_letter_path) if package.cover_letter_path else None,
                             selection_log_path=str(package.selection_log_path) if package.selection_log_path else None,
+                            candidate_artifact_path=str(package.candidate_artifact_path) if package.candidate_artifact_path else None,
+                            candidate_generation_status=package.candidate_generation_status,
+                            candidate_generation_error=package.candidate_generation_error,
                         )
                         # Extract structured requirements from selection_log
                         if package.selection_log_path:
@@ -763,6 +792,207 @@ class Orchestrator:
         return None
 
     @staticmethod
+    def _candidate_api_url() -> str:
+        base_url = (
+            getattr(config, "MATCHER_BASE_URL", None)
+            or os.environ.get("JQ_MATCHER_BASE_URL")
+            or CANDIDATE_API_DEFAULT_BASE_URL
+        )
+        base_url = base_url.rstrip("/")
+        if base_url.endswith("/api"):
+            return f"{base_url}/resume-bullet-candidates"
+        return f"{base_url}/api/resume-bullet-candidates"
+
+    @staticmethod
+    def _candidate_api_timeout_seconds() -> float:
+        raw = os.environ.get("JQ_CANDIDATE_API_TIMEOUT")
+        if not raw:
+            return CANDIDATE_API_TIMEOUT_SECONDS
+        try:
+            timeout = float(raw)
+        except ValueError:
+            return CANDIDATE_API_TIMEOUT_SECONDS
+        return timeout if timeout > 0 else CANDIDATE_API_TIMEOUT_SECONDS
+
+    @staticmethod
+    def _string_list(value: Any) -> list[str]:
+        if not isinstance(value, list):
+            return []
+        return [item.strip() for item in value if isinstance(item, str) and item.strip()]
+
+    def _candidate_request_body(
+        self, job: Job, out_dir: Path, selection_log_data: dict
+    ) -> dict:
+        signal_data = selection_log_data.get("needs_bullet_approval", {})
+        jd = (job.extraction.job_description or "").strip()
+        if not jd:
+            copied_jd = out_dir / "job_description.txt"
+            try:
+                if copied_jd.exists():
+                    jd = copied_jd.read_text(encoding="utf-8").strip()
+            except OSError:
+                jd = ""
+
+        unmatched = signal_data.get("unmatched_jd_gaps")
+        if not isinstance(unmatched, list):
+            unmatched = selection_log_data.get("unmatched_jd_gaps")
+
+        return {
+            "jd": jd,
+            "jd_requirements": self._string_list(selection_log_data.get("jd_requirements")),
+            "unmatched_jd_gaps": self._string_list(unmatched),
+        }
+
+    @staticmethod
+    def _request_candidate_artifact(
+        api_url: str, payload: dict, timeout_seconds: float
+    ) -> dict:
+        body = json.dumps(payload).encode("utf-8")
+        request = urllib.request.Request(
+            api_url,
+            data=body,
+            headers={
+                "Accept": "application/json",
+                "Content-Type": "application/json",
+            },
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=timeout_seconds) as response:
+                raw = response.read()
+        except urllib.error.HTTPError as exc:
+            raise CandidateGenerationError(f"candidate API HTTP {exc.code}") from exc
+        except TimeoutError as exc:
+            raise CandidateGenerationError("candidate API timed out") from exc
+        except urllib.error.URLError as exc:
+            raise CandidateGenerationError(f"candidate API unavailable: {exc.reason}") from exc
+        except OSError as exc:
+            raise CandidateGenerationError(f"candidate API request failed: {exc}") from exc
+
+        try:
+            data = json.loads(raw.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise CandidateGenerationError("candidate API returned invalid JSON") from exc
+        if not isinstance(data, dict):
+            raise CandidateGenerationError("candidate API response must be a JSON object")
+        return data
+
+    @staticmethod
+    def _validate_candidate_artifact(data: Any) -> str | None:
+        if not isinstance(data, dict):
+            return "candidate artifact must be a JSON object"
+        if data.get("schema_version") != 1:
+            return "candidate artifact schema_version must be 1"
+        if data.get("status") != "candidate_artifact":
+            return "candidate artifact status must be candidate_artifact"
+
+        candidates = data.get("candidates")
+        if not isinstance(candidates, list):
+            return "candidate artifact candidates must be a list"
+
+        for index, candidate in enumerate(candidates):
+            prefix = f"candidate {index}"
+            if not isinstance(candidate, dict):
+                return f"{prefix} must be an object"
+            if candidate.get("approval_status") != "candidate_only":
+                return f"{prefix} approval_status must be candidate_only"
+            if candidate.get("usable_in_resume") is not False:
+                return f"{prefix} usable_in_resume must be false"
+            if candidate.get("source_record_id") is not None:
+                return f"{prefix} source_record_id must be null"
+            if candidate.get("candidate_rendering_mode") != "claim_text_echo":
+                return f"{prefix} candidate_rendering_mode must be claim_text_echo"
+
+            candidate_text = candidate.get("candidate_text")
+            if not isinstance(candidate_text, str) or not candidate_text.strip():
+                return f"{prefix} candidate_text required"
+
+            candidate_id = candidate.get("candidate_id")
+            if not isinstance(candidate_id, str) or not candidate_id.startswith("accpro:"):
+                return f"{prefix} candidate_id must start with accpro:"
+
+            source_refs = candidate.get("source_refs")
+            if not isinstance(source_refs, list) or not source_refs:
+                return f"{prefix} source_refs must be non-empty"
+            candidate_text_matches_claim = False
+            for ref_index, source_ref in enumerate(source_refs):
+                if not isinstance(source_ref, dict):
+                    return f"{prefix} source_ref {ref_index} must be an object"
+                casefile_id = source_ref.get("casefile_id")
+                claim_id = source_ref.get("claim_id")
+                claim_text = source_ref.get("claim_text")
+                if not isinstance(casefile_id, str) or not casefile_id.strip():
+                    return f"{prefix} source_ref {ref_index} casefile_id required"
+                if not isinstance(claim_id, str) or not claim_id.strip():
+                    return f"{prefix} source_ref {ref_index} claim_id required"
+                if not isinstance(claim_text, str) or not claim_text.strip():
+                    return f"{prefix} source_ref {ref_index} claim_text required"
+                if candidate_text == claim_text:
+                    candidate_text_matches_claim = True
+            if not candidate_text_matches_claim:
+                return f"{prefix} candidate_text must match a source_ref claim_text"
+
+        return None
+
+    def _generate_candidate_artifact(
+        self, job: Job, out_dir: Path, selection_log_data: dict
+    ) -> CandidateGenerationResult:
+        api_url = self._candidate_api_url()
+        requested_at = datetime.now(timezone.utc).isoformat()
+        artifact_path = out_dir / CANDIDATE_ARTIFACT_NAME
+        payload = self._candidate_request_body(job, out_dir, selection_log_data)
+
+        try:
+            data = self._request_candidate_artifact(
+                api_url,
+                payload,
+                self._candidate_api_timeout_seconds(),
+            )
+            validation_error = self._validate_candidate_artifact(data)
+            if validation_error:
+                raise CandidateGenerationError(validation_error)
+
+            artifact_path.write_text(
+                json.dumps(data, indent=2), encoding="utf-8"
+            )
+            candidate_count = len(data["candidates"])
+            return CandidateGenerationResult(
+                status="succeeded",
+                artifact_path=artifact_path,
+                candidate_count=candidate_count,
+                error=None,
+                api_url=api_url,
+                requested_at=requested_at,
+                completed_at=datetime.now(timezone.utc).isoformat(),
+            )
+        except CandidateGenerationError as exc:
+            artifact_path.unlink(missing_ok=True)
+            logger.warning("Candidate generation failed for job %s: %s", job.job_id, exc)
+            return CandidateGenerationResult(
+                status="failed",
+                artifact_path=None,
+                candidate_count=0,
+                error=str(exc),
+                api_url=api_url,
+                requested_at=requested_at,
+                completed_at=datetime.now(timezone.utc).isoformat(),
+            )
+        except OSError as exc:
+            artifact_path.unlink(missing_ok=True)
+            logger.warning(
+                "Candidate artifact write failed for job %s: %s", job.job_id, exc
+            )
+            return CandidateGenerationResult(
+                status="failed",
+                artifact_path=None,
+                candidate_count=0,
+                error=f"candidate artifact write failed: {exc}",
+                api_url=api_url,
+                requested_at=requested_at,
+                completed_at=datetime.now(timezone.utc).isoformat(),
+            )
+
+    @staticmethod
     def _clear_output_artifacts(out_dir: Path) -> None:
         for name in (
             "resume.pdf",
@@ -776,6 +1006,7 @@ class Orchestrator:
             "compile.log",
             "compile_resume.log",
             "compile_cover_letter.log",
+            CANDIDATE_ARTIFACT_NAME,
         ):
             (out_dir / name).unlink(missing_ok=True)
 
@@ -837,6 +1068,9 @@ class Orchestrator:
             copied_job_description = out_dir / "job_description.txt"
             shutil.copy2(str(job_description), str(copied_job_description))
 
+        candidate_generation = self._generate_candidate_artifact(
+            job, out_dir, selection_log_data
+        )
         signal_data = selection_log_data["needs_bullet_approval"]
         metadata = {
             "job_id": job.job_id,
@@ -860,6 +1094,19 @@ class Orchestrator:
                 ),
             },
             "final_outputs": selection_log_data.get("final_outputs"),
+            "candidate_generation": {
+                "status": candidate_generation.status,
+                "artifact_path": (
+                    str(candidate_generation.artifact_path)
+                    if candidate_generation.artifact_path
+                    else None
+                ),
+                "candidate_count": candidate_generation.candidate_count,
+                "error": candidate_generation.error,
+                "api_url": candidate_generation.api_url,
+                "requested_at": candidate_generation.requested_at,
+                "completed_at": candidate_generation.completed_at,
+            },
             "copied_at": datetime.now(timezone.utc).isoformat(),
         }
         (out_dir / "metadata.json").write_text(
@@ -871,6 +1118,9 @@ class Orchestrator:
             True,
             status=JobStatus.NEEDS_BULLET_APPROVAL,
             selection_log_path=out_dir / "selection_log.json",
+            candidate_artifact_path=candidate_generation.artifact_path,
+            candidate_generation_status=candidate_generation.status,
+            candidate_generation_error=candidate_generation.error,
         )
 
     @staticmethod
@@ -1408,6 +1658,9 @@ def _job_summary(job: Job) -> dict:
             "resume_path": job.generation.resume_path,
             "cover_letter_path": job.generation.cover_letter_path,
             "selection_log_path": job.generation.selection_log_path,
+            "candidate_artifact_path": job.generation.candidate_artifact_path,
+            "candidate_generation_status": job.generation.candidate_generation_status,
+            "candidate_generation_error": job.generation.candidate_generation_error,
             "completed_at": job.generation.completed_at.isoformat() if job.generation.completed_at else None,
         }
 

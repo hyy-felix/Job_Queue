@@ -8,6 +8,7 @@ Tests for Wave 0 generation contract changes:
 
 import asyncio
 import json
+import os
 import shutil
 import tempfile
 from pathlib import Path
@@ -17,7 +18,7 @@ import pytest
 
 import config
 from models import ExtractionData, Job, JobStatus
-from orchestrator import Orchestrator
+from orchestrator import CandidateGenerationError, Orchestrator
 
 
 def _run(coro):
@@ -53,6 +54,39 @@ def _insufficiency_selection_log() -> dict:
     }
 
 
+def _candidate_artifact(candidates=None) -> dict:
+    if candidates is None:
+        candidates = [
+            {
+                "candidate_id": "accpro:case_001:claim_001",
+                "candidate_text": "Built closed-loop controls for a robotics platform.",
+                "candidate_rendering_mode": "claim_text_echo",
+                "approval_status": "candidate_only",
+                "usable_in_resume": False,
+                "source_record_id": None,
+                "source_refs": [
+                    {
+                        "casefile_id": "case_001",
+                        "claim_id": "claim_001",
+                        "claim_text": "Built closed-loop controls for a robotics platform.",
+                        "grounding_type": "testimony",
+                        "confidence": "high",
+                        "important": True,
+                        "testimony_refs_count": 1,
+                        "source_refs_count": 0,
+                    }
+                ],
+                "matched_jd_requirements": ["Controls"],
+                "matched_jd_gaps": ["No approved controls bullet"],
+            }
+        ]
+    return {
+        "schema_version": 1,
+        "status": "candidate_artifact",
+        "candidates": candidates,
+    }
+
+
 # ── Config Tests ──────────────────────────────────────────────
 
 
@@ -63,10 +97,21 @@ class TestPortDefault:
 
     def test_port_env_var_expression(self):
         """config.PORT uses JQ_PORT env var (evaluated at import time)."""
-        # config.PORT is set at import time, so we verify the mechanism:
-        # int(os.environ.get("JQ_PORT", "8080")) — default is "8080"
-        import os
         assert os.environ.get("JQ_PORT", "8080") == "8080" or config.PORT > 0
+
+    def test_candidate_api_url_does_not_duplicate_api_segment(self):
+        with patch.dict(os.environ, {"JQ_MATCHER_BASE_URL": "http://matcher.local/api"}):
+            assert (
+                Orchestrator._candidate_api_url()
+                == "http://matcher.local/api/resume-bullet-candidates"
+            )
+
+    def test_candidate_api_url_adds_api_segment_when_absent(self):
+        with patch.dict(os.environ, {"JQ_MATCHER_BASE_URL": "http://matcher.local"}):
+            assert (
+                Orchestrator._candidate_api_url()
+                == "http://matcher.local/api/resume-bullet-candidates"
+            )
 
 
 class TestSkillFilePath:
@@ -131,7 +176,12 @@ class TestValidateAndCopy:
         )
 
         # Patch config.JOBS_DIR
-        with patch.object(config, "JOBS_DIR", jobs_dir):
+        with patch.object(config, "JOBS_DIR", jobs_dir), \
+             patch.object(
+                 Orchestrator,
+                 "_request_candidate_artifact",
+                 side_effect=CandidateGenerationError("candidate API unavailable"),
+             ):
             from persistence import JsonJobStore
             store = JsonJobStore(jobs_dir)
             orch = Orchestrator.__new__(Orchestrator)
@@ -185,6 +235,16 @@ class TestValidateAndCopy:
         assert result.status == JobStatus.GENERATED
         # Verify selection_log.json was copied
         assert (job_dir / "output" / "selection_log.json").exists()
+
+    def test_normal_pdf_package_does_not_call_candidate_api(self, setup):
+        orch, job, output_folder, job_dir = setup
+
+        with patch.object(orch, "_request_candidate_artifact") as request:
+            result = orch._validate_and_copy(job, output_folder)
+
+        assert result.valid is True
+        request.assert_not_called()
+        assert not (job_dir / "output" / "resume_bullet_candidates.json").exists()
 
     def test_fails_without_resume(self, setup):
         orch, job, output_folder, job_dir = setup
@@ -266,6 +326,9 @@ class TestValidateAndCopy:
         assert meta["needs_bullet_approval"]["triggered"] is True
         assert meta["needs_bullet_approval"]["reason"] == "insufficient_approved_source_bullets"
         assert meta["needs_bullet_approval"]["candidates_artifact"] is None
+        assert meta["candidate_generation"]["status"] == "failed"
+        assert meta["candidate_generation"]["artifact_path"] is None
+        assert meta["candidate_generation"]["candidate_count"] == 0
 
     def test_valid_insufficiency_package_without_job_description(self, insufficiency_setup):
         orch, job, output_folder, job_dir = insufficiency_setup
@@ -278,11 +341,153 @@ class TestValidateAndCopy:
         meta = json.loads((job_dir / "output" / "metadata.json").read_text())
         assert meta["job_description"] is None
 
+    def test_insufficiency_candidate_api_success_writes_artifact_and_metadata(
+        self, insufficiency_setup
+    ):
+        orch, job, output_folder, job_dir = insufficiency_setup
+        job.extraction.job_description = "Build robotics controls software."
+        artifact = _candidate_artifact()
+
+        with patch.object(orch, "_request_candidate_artifact", return_value=artifact) as request:
+            result = orch._validate_and_copy(job, output_folder)
+
+        assert result.valid is True
+        assert result.status == JobStatus.NEEDS_BULLET_APPROVAL
+        assert result.candidate_generation_status == "succeeded"
+        candidate_path = job_dir / "output" / "resume_bullet_candidates.json"
+        assert result.candidate_artifact_path == candidate_path
+        assert json.loads(candidate_path.read_text(encoding="utf-8")) == artifact
+
+        payload = request.call_args.args[1]
+        assert payload["jd"] == "Build robotics controls software."
+        assert payload["jd_requirements"] == ["Python 5+ years", "CAD experience"]
+        assert payload["unmatched_jd_gaps"] == ["No approved controls bullet"]
+
+        meta = json.loads((job_dir / "output" / "metadata.json").read_text())
+        assert meta["candidate_generation"]["status"] == "succeeded"
+        assert meta["candidate_generation"]["artifact_path"] == str(candidate_path)
+        assert meta["candidate_generation"]["candidate_count"] == 1
+        assert meta["candidate_generation"]["error"] is None
+        assert meta["candidate_generation"]["api_url"].endswith(
+            "/api/resume-bullet-candidates"
+        )
+
+        copied_selection_log = json.loads(
+            (job_dir / "output" / "selection_log.json").read_text(encoding="utf-8")
+        )
+        assert copied_selection_log["needs_bullet_approval"]["candidates_artifact"] is None
+
+    def test_insufficiency_candidate_api_empty_candidates_writes_artifact(
+        self, insufficiency_setup
+    ):
+        orch, job, output_folder, job_dir = insufficiency_setup
+        artifact = _candidate_artifact(candidates=[])
+
+        with patch.object(orch, "_request_candidate_artifact", return_value=artifact):
+            result = orch._validate_and_copy(job, output_folder)
+
+        assert result.valid is True
+        candidate_path = job_dir / "output" / "resume_bullet_candidates.json"
+        assert candidate_path.exists()
+        meta = json.loads((job_dir / "output" / "metadata.json").read_text())
+        assert meta["candidate_generation"]["status"] == "succeeded"
+        assert meta["candidate_generation"]["candidate_count"] == 0
+
+    @pytest.mark.parametrize("error", [
+        "candidate API HTTP 500",
+        "candidate API timed out",
+        "candidate API returned invalid JSON",
+    ])
+    def test_insufficiency_candidate_api_failure_still_needs_bullet_approval(
+        self, insufficiency_setup, error
+    ):
+        orch, job, output_folder, job_dir = insufficiency_setup
+
+        with patch.object(
+            orch,
+            "_request_candidate_artifact",
+            side_effect=CandidateGenerationError(error),
+        ):
+            result = orch._validate_and_copy(job, output_folder)
+
+        assert result.valid is True
+        assert result.status == JobStatus.NEEDS_BULLET_APPROVAL
+        assert result.candidate_artifact_path is None
+        assert result.candidate_generation_status == "failed"
+        assert result.candidate_generation_error == error
+        assert not (job_dir / "output" / "resume_bullet_candidates.json").exists()
+        meta = json.loads((job_dir / "output" / "metadata.json").read_text())
+        assert meta["candidate_generation"]["status"] == "failed"
+        assert meta["candidate_generation"]["artifact_path"] is None
+        assert meta["candidate_generation"]["candidate_count"] == 0
+        assert meta["candidate_generation"]["error"] == error
+
+    @pytest.mark.parametrize("field,value", [
+        ("usable_in_resume", True),
+        ("approval_status", "approved"),
+        ("source_record_id", "approved:claim_001"),
+    ])
+    def test_unsafe_candidate_response_is_not_stored(
+        self, insufficiency_setup, field, value
+    ):
+        orch, job, output_folder, job_dir = insufficiency_setup
+        artifact = _candidate_artifact()
+        artifact["candidates"][0][field] = value
+
+        with patch.object(orch, "_request_candidate_artifact", return_value=artifact):
+            result = orch._validate_and_copy(job, output_folder)
+
+        assert result.valid is True
+        assert result.status == JobStatus.NEEDS_BULLET_APPROVAL
+        assert result.candidate_artifact_path is None
+        assert not (job_dir / "output" / "resume_bullet_candidates.json").exists()
+        meta = json.loads((job_dir / "output" / "metadata.json").read_text())
+        assert meta["candidate_generation"]["status"] == "failed"
+        assert meta["candidate_generation"]["artifact_path"] is None
+        assert meta["candidate_generation"]["candidate_count"] == 0
+
+    @pytest.mark.parametrize("mutation", [
+        "missing_candidate_text",
+        "empty_candidate_text",
+        "missing_claim_text",
+        "mismatched_claim_text",
+    ])
+    def test_candidate_text_must_echo_source_claim_text(
+        self, insufficiency_setup, mutation
+    ):
+        orch, job, output_folder, job_dir = insufficiency_setup
+        artifact = _candidate_artifact()
+        candidate = artifact["candidates"][0]
+
+        if mutation == "missing_candidate_text":
+            candidate.pop("candidate_text")
+        elif mutation == "empty_candidate_text":
+            candidate["candidate_text"] = "  "
+        elif mutation == "missing_claim_text":
+            candidate["source_refs"][0].pop("claim_text")
+        elif mutation == "mismatched_claim_text":
+            candidate["source_refs"][0]["claim_text"] = "Different source claim."
+
+        with patch.object(orch, "_request_candidate_artifact", return_value=artifact):
+            result = orch._validate_and_copy(job, output_folder)
+
+        assert result.valid is True
+        assert result.status == JobStatus.NEEDS_BULLET_APPROVAL
+        assert result.candidate_artifact_path is None
+        assert not (job_dir / "output" / "resume_bullet_candidates.json").exists()
+        meta = json.loads((job_dir / "output" / "metadata.json").read_text())
+        assert meta["candidate_generation"]["status"] == "failed"
+        assert meta["candidate_generation"]["artifact_path"] is None
+        assert meta["candidate_generation"]["candidate_count"] == 0
+
     def test_insufficiency_fails_without_notes(self, insufficiency_setup):
         orch, job, output_folder, job_dir = insufficiency_setup
         (output_folder / "note" / "notes.md").unlink()
 
-        assert orch._validate_and_copy(job, output_folder).valid is False
+        with patch.object(orch, "_request_candidate_artifact") as request:
+            assert orch._validate_and_copy(job, output_folder).valid is False
+
+        request.assert_not_called()
         assert not (job_dir / "output" / "metadata.json").exists()
 
     def test_insufficiency_fails_with_candidates_artifact(self, insufficiency_setup):
@@ -357,11 +562,13 @@ class TestValidateAndCopy:
         sl_path.write_text(json.dumps(data), encoding="utf-8")
         (output_folder / "resume.pdf").unlink()
 
-        result = orch._validate_and_copy(job, output_folder)
+        with patch.object(orch, "_request_candidate_artifact") as request:
+            result = orch._validate_and_copy(job, output_folder)
 
         assert result.valid is False
         assert result.status is None
         assert not (job_dir / "output" / "metadata.json").exists()
+        request.assert_not_called()
 
     def test_malformed_needs_bullet_approval_signal_fails(self, setup):
         orch, job, output_folder, job_dir = setup
@@ -417,6 +624,11 @@ class TestValidateAndCopy:
              patch.object(config, "APPLY_JD_SKILL_FILE", tmp_path / "missing" / "SKILL.md"), \
              patch.object(config, "GENERATION_TIMEOUT_SECONDS", 30), \
              patch.object(config, "CLAUDE_CLI", "claude"), \
+             patch.object(
+                 Orchestrator,
+                 "_request_candidate_artifact",
+                 return_value=_candidate_artifact(),
+             ), \
              patch("asyncio.create_subprocess_exec", side_effect=fake_create_subprocess_exec):
             orch = Orchestrator(store)
             orch.set_event_queue(asyncio.Queue())
@@ -427,6 +639,9 @@ class TestValidateAndCopy:
         assert final.generation.resume_path is None
         assert final.generation.cover_letter_path is None
         assert final.generation.selection_log_path
+        assert final.generation.candidate_artifact_path
+        assert final.generation.candidate_generation_status == "succeeded"
+        assert final.generation.candidate_generation_error is None
         assert final.score.overall_score is None
 
 
