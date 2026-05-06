@@ -13,7 +13,9 @@ import json
 import logging
 import os
 import signal
+import shutil
 import subprocess
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
@@ -109,6 +111,18 @@ logger = logging.getLogger("job_queue")
 
 class StateTransitionError(Exception):
     pass
+
+
+@dataclass(frozen=True)
+class GenerationPackageResult:
+    """Validated Re-Generator package copy result."""
+
+    valid: bool
+    status: JobStatus | None = None
+    selection_log_path: Path | None = None
+    resume_path: Path | None = None
+    cover_letter_path: Path | None = None
+    error: str | None = None
 
 
 def _is_linkedin_url(url: str) -> bool:
@@ -515,22 +529,21 @@ class Orchestrator:
             if proc.returncode == 0:
                 output_folder = self._resolve_output_folder(log_path, apps_dir, pre_dirs)
                 if output_folder:
-                    validation = self._validate_and_copy(job, output_folder)
-                    if validation:
-                        out_dir = config.JOBS_DIR / job.job_id / "output"
-                        sl_path = out_dir / "selection_log.json"
+                    package = self._validate_and_copy(job, output_folder)
+                    if package.valid and package.status:
                         job.generation = GenerationData(
                             output_folder=str(output_folder),
                             completed_at=datetime.now(timezone.utc),
-                            resume_path=str(out_dir / "resume.pdf"),
-                            cover_letter_path=str(out_dir / "cover_letter.pdf"),
-                            selection_log_path=str(sl_path),
+                            resume_path=str(package.resume_path) if package.resume_path else None,
+                            cover_letter_path=str(package.cover_letter_path) if package.cover_letter_path else None,
+                            selection_log_path=str(package.selection_log_path) if package.selection_log_path else None,
                         )
                         # Extract structured requirements from selection_log
-                        job.requirements = self._extract_requirements(sl_path)
-                        job = self._transition(job, JobStatus.GENERATED)
+                        if package.selection_log_path:
+                            job.requirements = self._extract_requirements(package.selection_log_path)
+                        job = self._transition(job, package.status)
                     else:
-                        job.error.last_error = "Output validation failed"
+                        job.error.last_error = package.error or "Output validation failed"
                         job = self._transition(job, JobStatus.GENERATION_FAILED)
                 else:
                     job.error.last_error = "Could not locate output folder"
@@ -613,21 +626,41 @@ class Orchestrator:
             logger.error("Fail-closed: 0 candidate output folders found")
         return None
 
-    def _validate_and_copy(self, job: Job, output_folder: Path) -> bool:
+    def _validate_and_copy(self, job: Job, output_folder: Path) -> GenerationPackageResult:
         """Validate outputs and copy artifacts to job workspace."""
-        job_dir = config.JOBS_DIR / job.job_id
-
         resume = output_folder / "resume.pdf"
         cover_letter = output_folder / "cover_letter.pdf"
         compile_log = output_folder / "note" / "compile.log"
+        selection_log = output_folder / "note" / "selection_log.json"
+
+        sl_data = self._load_selection_log(selection_log)
+        if sl_data is None:
+            return GenerationPackageResult(False, error="selection_log.json missing or unreadable")
+        if "jd_requirements" not in sl_data:
+            logger.error("selection_log.json missing 'jd_requirements' key")
+            return GenerationPackageResult(False, error="selection_log.json missing jd_requirements")
+
+        nba = sl_data.get("needs_bullet_approval")
+        if nba is not None:
+            if not isinstance(nba, dict):
+                logger.error("needs_bullet_approval signal must be an object")
+                return GenerationPackageResult(False, error="Malformed needs_bullet_approval signal")
+            if self._is_needs_bullet_approval_signal(sl_data):
+                error = self._validate_insufficiency_package(output_folder, sl_data)
+                if error:
+                    return GenerationPackageResult(False, error=error)
+                return self._copy_insufficiency_artifacts(job, output_folder, sl_data)
+            if nba.get("triggered") is True:
+                logger.error("Unsupported needs_bullet_approval reason: %s", nba.get("reason"))
+                return GenerationPackageResult(False, error="Unsupported needs_bullet_approval reason")
 
         # Validate
         if not resume.exists() or resume.stat().st_size == 0:
             logger.error("resume.pdf missing or empty")
-            return False
+            return GenerationPackageResult(False, error="resume.pdf missing or empty")
         if not cover_letter.exists() or cover_letter.stat().st_size == 0:
             logger.error("cover_letter.pdf missing or empty")
-            return False
+            return GenerationPackageResult(False, error="cover_letter.pdf missing or empty")
 
         # Check compile logs — look for successful PDF writing indicators
         # The workflow may use compile.log, compile_resume.log, or compile_cover_letter.log
@@ -651,23 +684,109 @@ class Orchestrator:
         if not found_compile_evidence:
             logger.warning("No compile log evidence found, relying on PDF existence + size check")
 
-        # Require selection_log.json — validate BEFORE copying anything
-        selection_log = output_folder / "note" / "selection_log.json"
+        return self._copy_final_artifacts(job, output_folder)
+
+    @staticmethod
+    def _load_selection_log(selection_log: Path) -> dict | None:
         if not selection_log.exists():
             logger.error("selection_log.json missing at %s", selection_log)
-            return False
+            return None
         try:
-            sl_data = json.loads(selection_log.read_text(encoding="utf-8"))
-            if "jd_requirements" not in sl_data:
-                logger.error("selection_log.json missing 'jd_requirements' key")
-                return False
+            data = json.loads(selection_log.read_text(encoding="utf-8"))
         except (json.JSONDecodeError, OSError) as exc:
             logger.error("selection_log.json unreadable: %s", exc)
-            return False
+            return None
+        if not isinstance(data, dict):
+            logger.error("selection_log.json must contain a JSON object")
+            return None
+        return data
 
-        # All validation passed — now copy artifacts
-        import shutil
+    @staticmethod
+    def _is_needs_bullet_approval_signal(selection_log: dict) -> bool:
+        signal_data = selection_log.get("needs_bullet_approval")
+        return (
+            isinstance(signal_data, dict)
+            and signal_data.get("triggered") is True
+            and signal_data.get("reason") == "insufficient_approved_source_bullets"
+        )
+
+    @staticmethod
+    def _validate_insufficiency_package(output_folder: Path, selection_log: dict) -> str | None:
+        notes = output_folder / "note" / "notes.md"
+        if not notes.exists():
+            logger.error("notes.md missing for needs_bullet_approval package")
+            return "notes.md missing for needs_bullet_approval package"
+
+        stale_artifacts = [
+            output_folder / "resume.pdf",
+            output_folder / "cover_letter.pdf",
+            output_folder / "resume.tex",
+            output_folder / "cover_letter.tex",
+            output_folder / "note" / "compile.log",
+            output_folder / "note" / "compile_resume.log",
+            output_folder / "note" / "compile_cover_letter.log",
+        ]
+        stale_found = [path for path in stale_artifacts if path.exists()]
+        if stale_found:
+            logger.error("Stale final artifacts in insufficiency package: %s", stale_found)
+            return "Stale final artifacts in needs_bullet_approval package"
+
+        signal_data = selection_log.get("needs_bullet_approval", {})
+        if signal_data.get("candidates_artifact") is not None:
+            logger.error("candidates_artifact must be null for Phase 0C")
+            return "candidates_artifact must be null for Phase 0C"
+
+        if selection_log.get("selected_projects") != []:
+            logger.error("selected_projects must be [] for needs_bullet_approval package")
+            return "selected_projects must be empty for needs_bullet_approval package"
+
+        if selection_log.get("trim_priority") != []:
+            logger.error("trim_priority must be [] for needs_bullet_approval package")
+            return "trim_priority must be empty for needs_bullet_approval package"
+
+        final_outputs = selection_log.get("final_outputs")
+        required_false_fields = (
+            "resume_tex",
+            "cover_letter_tex",
+            "resume_pdf",
+            "cover_letter_pdf",
+            "compile_log",
+        )
+        if not isinstance(final_outputs, dict):
+            logger.error("final_outputs object missing for needs_bullet_approval package")
+            return "final_outputs object missing for needs_bullet_approval package"
+        for field in required_false_fields:
+            if final_outputs.get(field) is not False:
+                logger.error("final_outputs.%s must be false", field)
+                return f"final_outputs.{field} must be false"
+
+        return None
+
+    @staticmethod
+    def _clear_output_artifacts(out_dir: Path) -> None:
+        for name in (
+            "resume.pdf",
+            "cover_letter.pdf",
+            "selection_log.json",
+            "notes.md",
+            "job_description.txt",
+            "metadata.json",
+            "resume.tex",
+            "cover_letter.tex",
+            "compile.log",
+            "compile_resume.log",
+            "compile_cover_letter.log",
+        ):
+            (out_dir / name).unlink(missing_ok=True)
+
+    def _copy_final_artifacts(self, job: Job, output_folder: Path) -> GenerationPackageResult:
+        job_dir = config.JOBS_DIR / job.job_id
         out_dir = job_dir / "output"
+        resume = output_folder / "resume.pdf"
+        cover_letter = output_folder / "cover_letter.pdf"
+        selection_log = output_folder / "note" / "selection_log.json"
+
+        self._clear_output_artifacts(out_dir)
         shutil.copy2(str(resume), str(out_dir / "resume.pdf"))
         shutil.copy2(str(cover_letter), str(out_dir / "cover_letter.pdf"))
         shutil.copy2(str(selection_log), str(out_dir / "selection_log.json"))
@@ -693,7 +812,66 @@ class Orchestrator:
         )
 
         logger.info("Artifacts copied to workspace for job %s", job.job_id)
-        return True
+        return GenerationPackageResult(
+            True,
+            status=JobStatus.GENERATED,
+            selection_log_path=out_dir / "selection_log.json",
+            resume_path=out_dir / "resume.pdf",
+            cover_letter_path=out_dir / "cover_letter.pdf",
+        )
+
+    def _copy_insufficiency_artifacts(
+        self, job: Job, output_folder: Path, selection_log_data: dict
+    ) -> GenerationPackageResult:
+        job_dir = config.JOBS_DIR / job.job_id
+        out_dir = job_dir / "output"
+        selection_log = output_folder / "note" / "selection_log.json"
+        notes = output_folder / "note" / "notes.md"
+        job_description = output_folder / "note" / "job_description.txt"
+
+        self._clear_output_artifacts(out_dir)
+        shutil.copy2(str(selection_log), str(out_dir / "selection_log.json"))
+        shutil.copy2(str(notes), str(out_dir / "notes.md"))
+        copied_job_description = None
+        if job_description.exists():
+            copied_job_description = out_dir / "job_description.txt"
+            shutil.copy2(str(job_description), str(copied_job_description))
+
+        signal_data = selection_log_data["needs_bullet_approval"]
+        metadata = {
+            "job_id": job.job_id,
+            "source_url": job.source_url,
+            "company_name": job.extraction.company_name,
+            "role_title": job.extraction.role_title,
+            "source_output_folder": str(output_folder),
+            "package_status": JobStatus.NEEDS_BULLET_APPROVAL.value,
+            "resume_pdf": None,
+            "cover_letter_pdf": None,
+            "selection_log": str(out_dir / "selection_log.json"),
+            "notes": str(out_dir / "notes.md"),
+            "job_description": str(copied_job_description) if copied_job_description else None,
+            "needs_bullet_approval": {
+                "triggered": True,
+                "reason": signal_data.get("reason"),
+                "candidates_artifact": signal_data.get("candidates_artifact"),
+                "unmatched_jd_gaps": signal_data.get(
+                    "unmatched_jd_gaps",
+                    selection_log_data.get("unmatched_jd_gaps", []),
+                ),
+            },
+            "final_outputs": selection_log_data.get("final_outputs"),
+            "copied_at": datetime.now(timezone.utc).isoformat(),
+        }
+        (out_dir / "metadata.json").write_text(
+            json.dumps(metadata, indent=2), encoding="utf-8"
+        )
+
+        logger.info("Insufficiency artifacts copied to workspace for job %s", job.job_id)
+        return GenerationPackageResult(
+            True,
+            status=JobStatus.NEEDS_BULLET_APPROVAL,
+            selection_log_path=out_dir / "selection_log.json",
+        )
 
     @staticmethod
     def _extract_requirements(selection_log_path: Path) -> list:

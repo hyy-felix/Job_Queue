@@ -113,6 +113,16 @@ class TestReceiveScore:
         reloaded = store.get_job(job.job_id)
         assert reloaded.status == JobStatus.NEEDS_BULLET_APPROVAL
 
+    def test_rejects_from_pre_generated_states(self, orch, store, tmp_jobs_dir):
+        job = store.create_job("https://example.com/job/pre-generated-states")
+        for status in [
+            JobStatus.EXTRACTING, JobStatus.SCRAPED,
+            JobStatus.QUEUED, JobStatus.GENERATING,
+        ]:
+            job.status = status
+            store.update_job(job)
+            with pytest.raises(StateTransitionError, match="expected generated"):
+                _run(orch.receive_score(job.job_id, {"overall_score": 50.0}))
     def test_idempotent_from_scored(self, orch, store, tmp_jobs_dir):
         """Second score push is idempotent — returns existing job, no error."""
         job = _make_generated_job(store, tmp_jobs_dir)

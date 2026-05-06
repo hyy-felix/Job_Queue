@@ -147,6 +147,20 @@ class TestQueueApplyValidation:
         with pytest.raises(StateTransitionError, match="Cannot apply"):
             _run(orch.queue_apply(job.job_id))
 
+    def test_apply_from_needs_bullet_approval_raises_even_with_metadata(self, orch, store, tmp_jobs_dir):
+        job = store.create_job("https://example.com/job/needs-bullets-with-meta")
+        job.status = JobStatus.NEEDS_BULLET_APPROVAL
+        store.update_job(job)
+
+        output_dir = tmp_jobs_dir / job.job_id / "output"
+        (output_dir / "metadata.json").write_text(json.dumps({
+            "package_status": "needs_bullet_approval",
+            "resume_pdf": None,
+        }))
+
+        with pytest.raises(StateTransitionError, match="Cannot apply"):
+            _run(orch.queue_apply(job.job_id))
+
     def test_apply_missing_metadata_raises(self, orch, store, tmp_jobs_dir):
         job = store.create_job("https://example.com/job/no-meta")
         for status in [

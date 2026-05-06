@@ -96,6 +96,27 @@ class TestSSEPayloadBasic:
         assert "generation" in summary
         assert summary["requirements_count"] == 1
 
+    def test_needs_bullet_approval_job_includes_generation_without_score(self):
+        job = Job(source_url="https://example.com/job/5")
+        job.status = JobStatus.NEEDS_BULLET_APPROVAL
+        job.extraction = ExtractionData(job_description="JD")
+        job.generation = GenerationData(
+            output_folder="/path/to/output",
+            completed_at=datetime(2026, 3, 29, tzinfo=timezone.utc),
+            selection_log_path="/path/to/selection_log.json",
+        )
+        job.requirements = [RequirementItem(id="req_001", text="Python")]
+
+        summary = _job_summary(job)
+
+        assert summary["status"] == "needs_bullet_approval"
+        assert "generation" in summary
+        assert summary["generation"]["resume_path"] is None
+        assert summary["generation"]["cover_letter_path"] is None
+        assert summary["generation"]["selection_log_path"] == "/path/to/selection_log.json"
+        assert summary["requirements_count"] == 1
+        assert "score" not in summary
+
 
 class TestSSEPayloadEdgeCases:
 

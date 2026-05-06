@@ -97,7 +97,21 @@ cmd = ["claude", "--print", "--dangerously-skip-permissions",
        "-p", prompt]
 ```
 
-Required outputs: `resume.pdf`, `cover_letter.pdf`, `note/selection_log.json` (with `jd_requirements` key).
+Normal successful outputs: `resume.pdf`, `cover_letter.pdf`, `note/selection_log.json` (with `jd_requirements` key).
+
+Insufficient approved-source bullets are a valid blocked generation package, not a generic generation failure, only when `note/selection_log.json` contains:
+
+```json
+{
+  "needs_bullet_approval": {
+    "triggered": true,
+    "reason": "insufficient_approved_source_bullets",
+    "candidates_artifact": null
+  }
+}
+```
+
+For that package, Job_Queue requires `note/selection_log.json` and `note/notes.md`, allows `note/job_description.txt`, rejects any final PDFs, `.tex` files, or compile logs as stale artifacts, copies only note artifacts plus metadata, and transitions `GENERATING → NEEDS_BULLET_APPROVAL`.
 
 Graceful fallback: if SKILL.md is missing, uses free-form prompt.
 
