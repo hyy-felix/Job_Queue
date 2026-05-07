@@ -153,6 +153,7 @@ class TestStateMachine:
             JobStatus.NEEDS_BULLET_APPROVAL,
         )
         assert is_legal_transition(JobStatus.NEEDS_BULLET_APPROVAL, JobStatus.QUEUED)
+        assert is_legal_transition(JobStatus.NEEDS_BULLET_APPROVAL, JobStatus.GENERATING)
         assert is_legal_transition(JobStatus.NEEDS_BULLET_APPROVAL, JobStatus.CANCELLED)
 
     def test_needs_bullet_approval_blocks_downstream_states(self):

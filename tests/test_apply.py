@@ -138,7 +138,8 @@ class TestQueueApplyValidation:
         with pytest.raises(StateTransitionError, match="Cannot apply"):
             _run(orch.queue_apply(job.job_id))
 
-    def test_apply_from_needs_bullet_approval_raises(self, orch, store):
+    @pytest.mark.invariant
+    def test_invariant_apply_blocked_from_needs_bullet_approval(self, orch, store):
         job = store.create_job("https://example.com/job/needs-bullets")
         job.status = JobStatus.NEEDS_BULLET_APPROVAL
         store.update_job(job)

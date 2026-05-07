@@ -118,6 +118,7 @@ LEGAL_TRANSITIONS: dict[JobStatus, set[JobStatus]] = {
     },
     JobStatus.NEEDS_BULLET_APPROVAL: {
         JobStatus.QUEUED,       # retry after approved source bullets are available
+        JobStatus.GENERATING,
         JobStatus.CANCELLED,
     },
     JobStatus.GENERATION_FAILED: {

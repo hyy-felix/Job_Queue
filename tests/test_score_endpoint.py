@@ -101,6 +101,18 @@ class TestReceiveScore:
         with pytest.raises(StateTransitionError, match="expected generated"):
             _run(orch.receive_score(job.job_id, {"overall_score": 50.0}))
 
+    @pytest.mark.invariant
+    def test_invariant_score_blocked_from_needs_bullet_approval(self, orch, store, tmp_jobs_dir):
+        job = store.create_job("https://example.com/job/needs-bullets-score")
+        job.status = JobStatus.NEEDS_BULLET_APPROVAL
+        store.update_job(job)
+
+        with pytest.raises(StateTransitionError, match="expected generated"):
+            _run(orch.receive_score(job.job_id, {"overall_score": 50.0}))
+
+        reloaded = store.get_job(job.job_id)
+        assert reloaded.status == JobStatus.NEEDS_BULLET_APPROVAL
+
     def test_idempotent_from_scored(self, orch, store, tmp_jobs_dir):
         """Second score push is idempotent — returns existing job, no error."""
         job = _make_generated_job(store, tmp_jobs_dir)
