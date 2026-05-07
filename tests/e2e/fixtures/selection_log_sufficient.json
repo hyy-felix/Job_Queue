@@ -1,0 +1,21 @@
+{
+  "schema_version": 2,
+  "status": "generated",
+  "jd_requirements": [
+    "Build robotics controls software",
+    "Use grounded sensor feedback in production systems"
+  ],
+  "jd_keywords": ["robotics", "controls", "sensor", "feedback"],
+  "selected_projects": [],
+  "rejected_overlaps": [],
+  "unmatched_jd_gaps": [],
+  "flags_for_user": [],
+  "trim_priority": [],
+  "final_outputs": {
+    "resume_tex": true,
+    "cover_letter_tex": true,
+    "resume_pdf": true,
+    "cover_letter_pdf": true,
+    "compile_log": true
+  }
+}

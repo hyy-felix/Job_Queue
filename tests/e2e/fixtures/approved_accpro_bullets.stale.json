@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "ledger_type": "approved_accpro_bullets",
+  "updated_at": "2026-05-06T00:00:00Z",
+  "records": [
+    {
+      "source_record_id": "approved_accpro:20260506:robotics-controls:001",
+      "record_type": "approved_accpro_bullet",
+      "source_type": "approved_accpro_bullet",
+      "status": "stale",
+      "approval_status": "approved",
+      "usable_in_resume": true,
+      "approved_text": "Implemented closed-loop controls for a robotics platform using grounded sensor feedback.",
+      "approved_text_hash": {
+        "algorithm": "sha256",
+        "normalization": "trim_collapse_whitespace_v1",
+        "value": "f84c6772693737f6529d7783e0f6eacfd51745645448be4b5e0fee0506c3ddf9"
+      },
+      "approval": {
+        "approved_at": "2026-05-06T00:00:00Z",
+        "approved_by": "felixhyy",
+        "approval_method": "manual_review",
+        "approval_source": "relevel_frontend",
+        "approval_notes": "Approved after reviewing source claim and JD fit."
+      },
+      "approval_scope": {
+        "type": "jd_specific",
+        "jd_hash": "sha256:example-jd-hash",
+        "company": "Example Company",
+        "role": "Robotics Software Engineer"
+      },
+      "source_candidate": {
+        "candidate_id": "accpro:20260422-lift:c-201",
+        "candidate_artifact_path": "jobs/example_job/output/resume_bullet_candidates.json",
+        "candidate_text": "Implemented closed-loop controls for a robotics platform.",
+        "candidate_rendering_mode": "claim_text_echo",
+        "job_id": "example_job"
+      },
+      "source_claims": [
+        {
+          "casefile_id": "20260422-lift",
+          "claim_id": "c-201",
+          "claim_text_snapshot": "Implemented closed-loop controls for a robotics platform.",
+          "claim_text_hash": {
+            "algorithm": "sha256",
+            "normalization": "trim_collapse_whitespace_v1",
+            "value": "501db2bedfae82c96287435c115b6bc2a00b7e38abd747d51dca8facd3c52fab"
+          },
+          "grounding_type": "testimony",
+          "confidence": "high",
+          "important": true,
+          "testimony_refs_count": 1,
+          "source_refs_count": 0
+        }
+      ],
+      "source_fingerprint": {
+        "algorithm": "sha256",
+        "version": "accpro_source_snapshot_v1",
+        "value": "b77fdc3073d3a6cca4db6450449f82dab09c9d50ed9639a317bb86a565675064"
+      },
+      "source_casefiles": [
+        {
+          "casefile_id": "20260422-lift",
+          "schema_version": "2.0",
+          "updated_at_snapshot": "2026-04-22T00:00:00Z"
+        }
+      ],
+      "lineage": {
+        "edited_from_candidate_text": true,
+        "edit_summary": "Converted claim text into resume bullet phrasing without adding facts.",
+        "forbidden_fact_additions_checked": true
+      },
+      "risk_review": {
+        "ownership_level": "unknown",
+        "measurement_kind": "none",
+        "warnings": []
+      },
+      "overlap": {
+        "manual_overlap_tags": [],
+        "related_source_record_ids": [],
+        "related_base_bullet_ids": []
+      },
+      "created_at": "2026-05-06T00:00:00Z",
+      "updated_at": "2026-05-06T00:00:00Z"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "id": "20260422-lift",
+  "schema_version": "2.0",
+  "updated_at": "2026-05-07T00:00:00Z",
+  "claims": {
+    "c-201": {
+      "text": "Implemented closed-loop controls for a robotics platform.",
+      "grounding_type": "testimony",
+      "confidence": "high",
+      "important": true,
+      "testimony_refs": [
+        {
+          "id": "interview-001",
+          "excerpt": "Built the closed-loop controls work."
+        }
+      ],
+      "source_refs": []
+    }
+  }
+}

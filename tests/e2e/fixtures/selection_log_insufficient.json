@@ -1,0 +1,34 @@
+{
+  "schema_version": 2,
+  "status": "needs_bullet_approval",
+  "jd_requirements": [
+    "Build robotics controls software",
+    "Use grounded sensor feedback in production systems"
+  ],
+  "jd_keywords": ["robotics", "controls", "sensor", "feedback"],
+  "selected_projects": [],
+  "rejected_overlaps": [],
+  "unmatched_jd_gaps": [
+    "No active approved AccPro source bullet covers robotics controls."
+  ],
+  "flags_for_user": [
+    "Resume generation blocked because approved source bullets are insufficient for this JD."
+  ],
+  "trim_priority": [],
+  "needs_bullet_approval": {
+    "triggered": true,
+    "reason": "insufficient_approved_source_bullets",
+    "unmatched_jd_gaps": [
+      "No active approved AccPro source bullet covers robotics controls."
+    ],
+    "casefile_ids": ["20260422-lift"],
+    "candidates_artifact": null
+  },
+  "final_outputs": {
+    "resume_tex": false,
+    "cover_letter_tex": false,
+    "resume_pdf": false,
+    "cover_letter_pdf": false,
+    "compile_log": false
+  }
+}
