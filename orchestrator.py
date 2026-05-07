@@ -794,8 +794,8 @@ class Orchestrator:
     @staticmethod
     def _candidate_api_url() -> str:
         base_url = (
-            getattr(config, "MATCHER_BASE_URL", None)
-            or os.environ.get("JQ_MATCHER_BASE_URL")
+            os.environ.get("RELEVEL_FRONTEND_URL")
+            or getattr(config, "MATCHER_BASE_URL", None)
             or CANDIDATE_API_DEFAULT_BASE_URL
         )
         base_url = base_url.rstrip("/")
@@ -833,14 +833,12 @@ class Orchestrator:
             except OSError:
                 jd = ""
 
-        unmatched = signal_data.get("unmatched_jd_gaps")
-        if not isinstance(unmatched, list):
-            unmatched = selection_log_data.get("unmatched_jd_gaps")
-
         return {
-            "jd": jd,
-            "jd_requirements": self._string_list(selection_log_data.get("jd_requirements")),
-            "unmatched_jd_gaps": self._string_list(unmatched),
+            "jd_text": jd,
+            "casefile_ids": self._string_list(
+                signal_data.get("casefile_ids")
+                or selection_log_data.get("casefile_ids")
+            ),
         }
 
     @staticmethod
@@ -1256,6 +1254,14 @@ class Orchestrator:
         elif job.status == JobStatus.GENERATION_FAILED:
             job.error.retry_count += 1
             job.error.last_error = None
+            job = self._transition(job, JobStatus.QUEUED)
+            await self._emit_event("job_updated", _job_summary(job))
+            return job
+
+        elif job.status == JobStatus.NEEDS_BULLET_APPROVAL:
+            job.error.retry_count += 1
+            job.error.last_error = None
+            self._clear_output_artifacts(config.JOBS_DIR / job.job_id / "output")
             job = self._transition(job, JobStatus.QUEUED)
             await self._emit_event("job_updated", _job_summary(job))
             return job

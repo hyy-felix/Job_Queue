@@ -12,7 +12,7 @@ import os
 import shutil
 import tempfile
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -42,6 +42,7 @@ def _insufficiency_selection_log() -> dict:
             "triggered": True,
             "reason": "insufficient_approved_source_bullets",
             "unmatched_jd_gaps": ["No approved controls bullet"],
+            "casefile_ids": ["case_001"],
             "candidates_artifact": None,
         },
         "final_outputs": {
@@ -100,14 +101,14 @@ class TestPortDefault:
         assert os.environ.get("JQ_PORT", "8080") == "8080" or config.PORT > 0
 
     def test_candidate_api_url_does_not_duplicate_api_segment(self):
-        with patch.dict(os.environ, {"JQ_MATCHER_BASE_URL": "http://matcher.local/api"}):
+        with patch.dict(os.environ, {"RELEVEL_FRONTEND_URL": "http://matcher.local/api"}):
             assert (
                 Orchestrator._candidate_api_url()
                 == "http://matcher.local/api/resume-bullet-candidates"
             )
 
     def test_candidate_api_url_adds_api_segment_when_absent(self):
-        with patch.dict(os.environ, {"JQ_MATCHER_BASE_URL": "http://matcher.local"}):
+        with patch.dict(os.environ, {"RELEVEL_FRONTEND_URL": "http://matcher.local"}):
             assert (
                 Orchestrator._candidate_api_url()
                 == "http://matcher.local/api/resume-bullet-candidates"
@@ -359,9 +360,10 @@ class TestValidateAndCopy:
         assert json.loads(candidate_path.read_text(encoding="utf-8")) == artifact
 
         payload = request.call_args.args[1]
-        assert payload["jd"] == "Build robotics controls software."
-        assert payload["jd_requirements"] == ["Python 5+ years", "CAD experience"]
-        assert payload["unmatched_jd_gaps"] == ["No approved controls bullet"]
+        assert payload == {
+            "jd_text": "Build robotics controls software.",
+            "casefile_ids": ["case_001"],
+        }
 
         meta = json.loads((job_dir / "output" / "metadata.json").read_text())
         assert meta["candidate_generation"]["status"] == "succeeded"
@@ -392,6 +394,22 @@ class TestValidateAndCopy:
         meta = json.loads((job_dir / "output" / "metadata.json").read_text())
         assert meta["candidate_generation"]["status"] == "succeeded"
         assert meta["candidate_generation"]["candidate_count"] == 0
+
+    def test_candidate_artifact_filename_matches_module_constant(
+        self, insufficiency_setup
+    ):
+        from orchestrator import CANDIDATE_ARTIFACT_NAME
+
+        orch, job, output_folder, job_dir = insufficiency_setup
+        artifact = _candidate_artifact()
+
+        with patch.object(orch, "_request_candidate_artifact", return_value=artifact):
+            result = orch._validate_and_copy(job, output_folder)
+
+        expected_path = job_dir / "output" / CANDIDATE_ARTIFACT_NAME
+        assert result.valid is True
+        assert result.candidate_artifact_path == expected_path
+        assert expected_path.exists()
 
     @pytest.mark.parametrize("error", [
         "candidate API HTTP 500",
@@ -727,3 +745,195 @@ class TestBackwardCompatibility:
             f = real_output_check / name
             assert f.exists(), f"{name} missing"
             assert f.stat().st_size > 0, f"{name} is empty"
+
+
+class TestRunGenerationEndToEnd:
+    def _new_orchestrator(self, store):
+        orch = Orchestrator.__new__(Orchestrator)
+        orch.store = store
+        orch._active_processes = {}
+        orch._event_queue = None
+        orch._queue_task = None
+        orch._running = False
+        return orch
+
+    def _make_queued_job(self, store):
+        job = store.create_job("https://example.com/job/run-generation-e2e")
+        job.extraction = ExtractionData(
+            company_name="Test Corp",
+            role_title="Engineer",
+            job_description="Build robotics controls software.",
+        )
+        job.status = JobStatus.QUEUED
+        store.update_job(job)
+        return job
+
+    def _output_folder(self, resume_generator_dir):
+        return (
+            resume_generator_dir
+            / "applications"
+            / "03292026"
+            / "Test_Corp_Engineer"
+        )
+
+    def _write_success_package(self, output_folder):
+        (output_folder / "note").mkdir(parents=True, exist_ok=True)
+        (output_folder / "resume.pdf").write_bytes(b"%PDF-fake-resume")
+        (output_folder / "cover_letter.pdf").write_bytes(b"%PDF-fake-cover-letter")
+        (output_folder / "note" / "compile.log").write_text(
+            "Writing `resume.pdf`\nBUILD: SUCCESS",
+            encoding="utf-8",
+        )
+        (output_folder / "note" / "selection_log.json").write_text(
+            json.dumps(
+                {
+                    "jd_requirements": ["Python 5+ years", "CAD experience"],
+                    "jd_keywords": ["python", "cad"],
+                    "selected_projects": [],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+    def _write_insufficiency_package(self, output_folder):
+        (output_folder / "note").mkdir(parents=True, exist_ok=True)
+        for name in ("resume.pdf", "cover_letter.pdf"):
+            (output_folder / name).unlink(missing_ok=True)
+        (output_folder / "note" / "compile.log").unlink(missing_ok=True)
+        (output_folder / "note" / "notes.md").write_text(
+            "# Needs bullets",
+            encoding="utf-8",
+        )
+        (output_folder / "note" / "selection_log.json").write_text(
+            json.dumps(_insufficiency_selection_log()),
+            encoding="utf-8",
+        )
+
+    def _fake_process_factory(self, output_folder):
+        class FakeProcess:
+            pid = 12345
+            returncode = 0
+
+            async def wait(self):
+                return 0
+
+        async def fake_create_subprocess_exec(*args, stdout=None, **kwargs):
+            stdout.write(f"OUTPUT_PATH: {output_folder}\n")
+            stdout.flush()
+            return FakeProcess()
+
+        return fake_create_subprocess_exec
+
+    def _run_generation_with_patches(
+        self, orch, job, tmp_path, jobs_dir, resume_generator_dir, output_folder
+    ):
+        with patch.object(config, "JOBS_DIR", jobs_dir), \
+             patch.object(config, "RESUME_GENERATOR_DIR", resume_generator_dir), \
+             patch.object(config, "APPLY_JD_SKILL_FILE", tmp_path / "missing" / "SKILL.md"), \
+             patch.object(config, "GENERATION_TIMEOUT_SECONDS", 30), \
+             patch.object(config, "CLAUDE_CLI", "claude"), \
+             patch(
+                 "asyncio.create_subprocess_exec",
+                 side_effect=self._fake_process_factory(output_folder),
+             ):
+            _run(orch._run_generation(job))
+
+    def test_run_generation_happy_path_reaches_generated(self, tmp_path):
+        from persistence import JsonJobStore
+
+        jobs_dir = tmp_path / "jobs"
+        store = JsonJobStore(jobs_dir)
+        job = self._make_queued_job(store)
+        resume_generator_dir = tmp_path / "Re-Generator"
+        output_folder = self._output_folder(resume_generator_dir)
+        self._write_success_package(output_folder)
+
+        request_candidate_artifact = MagicMock()
+        with patch.object(
+            Orchestrator,
+            "_request_candidate_artifact",
+            request_candidate_artifact,
+        ):
+            orch = self._new_orchestrator(store)
+            self._run_generation_with_patches(
+                orch, job, tmp_path, jobs_dir, resume_generator_dir, output_folder
+            )
+
+        final = store.get_job(job.job_id)
+        assert final.status == JobStatus.GENERATED
+        request_candidate_artifact.assert_not_called()
+
+    @pytest.mark.invariant
+    def test_run_generation_insufficiency_with_5xx_parks_at_needs_bullet_approval(
+        self, tmp_path
+    ):
+        from persistence import JsonJobStore
+
+        jobs_dir = tmp_path / "jobs"
+        store = JsonJobStore(jobs_dir)
+        job = self._make_queued_job(store)
+        resume_generator_dir = tmp_path / "Re-Generator"
+        output_folder = self._output_folder(resume_generator_dir)
+        self._write_insufficiency_package(output_folder)
+
+        with patch.object(
+            Orchestrator,
+            "_request_candidate_artifact",
+            side_effect=CandidateGenerationError("candidate API HTTP 500"),
+        ):
+            orch = self._new_orchestrator(store)
+            self._run_generation_with_patches(
+                orch, job, tmp_path, jobs_dir, resume_generator_dir, output_folder
+            )
+
+        final = store.get_job(job.job_id)
+        out_dir = jobs_dir / job.job_id / "output"
+        metadata = json.loads((out_dir / "metadata.json").read_text(encoding="utf-8"))
+        assert final.status == JobStatus.NEEDS_BULLET_APPROVAL
+        assert metadata["candidate_generation"]["status"] == "failed"
+        assert metadata["candidate_generation"]["error"] == "candidate API HTTP 500"
+        assert not (out_dir / "resume.pdf").exists()
+        assert not (out_dir / "cover_letter.pdf").exists()
+        assert final.score.overall_score is None
+
+    @pytest.mark.invariant
+    def test_run_generation_then_retry_returns_to_queued_and_generates(self, tmp_path):
+        from orchestrator import CANDIDATE_ARTIFACT_NAME
+        from persistence import JsonJobStore
+
+        jobs_dir = tmp_path / "jobs"
+        store = JsonJobStore(jobs_dir)
+        job = self._make_queued_job(store)
+        resume_generator_dir = tmp_path / "Re-Generator"
+        output_folder = self._output_folder(resume_generator_dir)
+        self._write_insufficiency_package(output_folder)
+
+        with patch.object(
+            Orchestrator,
+            "_request_candidate_artifact",
+            return_value=_candidate_artifact(),
+        ):
+            orch = self._new_orchestrator(store)
+            self._run_generation_with_patches(
+                orch, job, tmp_path, jobs_dir, resume_generator_dir, output_folder
+            )
+
+        first = store.get_job(job.job_id)
+        candidate_path = jobs_dir / job.job_id / "output" / CANDIDATE_ARTIFACT_NAME
+        assert first.status == JobStatus.NEEDS_BULLET_APPROVAL
+        assert candidate_path.exists()
+
+        with patch.object(config, "JOBS_DIR", jobs_dir):
+            retried = _run(orch.retry_job(job.job_id))
+
+        assert retried.status == JobStatus.QUEUED
+        assert retried.error.retry_count == 1
+        assert not candidate_path.exists()
+
+        self._write_success_package(output_folder)
+        self._run_generation_with_patches(
+            orch, retried, tmp_path, jobs_dir, resume_generator_dir, output_folder
+        )
+
+        final = store.get_job(job.job_id)
+        assert final.status == JobStatus.GENERATED
