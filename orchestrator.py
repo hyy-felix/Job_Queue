@@ -119,6 +119,20 @@ class StateTransitionError(Exception):
     pass
 
 
+class ArtifactConflictError(Exception):
+    """Raised by queue_job when the requested mode would overwrite an existing
+    artifact whose *_completed_at timestamp is set, and force=False.
+
+    The server translates this to HTTP 409 with a structured body the UI uses
+    to show an overwrite-confirm dialog.
+    """
+
+    def __init__(self, mode: str, message: str) -> None:
+        super().__init__(message)
+        self.mode = mode
+        self.message = message
+
+
 class CandidateGenerationError(Exception):
     pass
 
@@ -470,15 +484,99 @@ class Orchestrator:
                 await asyncio.sleep(5)
 
     async def _run_generation(self, job: Job) -> None:
+        """Top-level dispatcher. Reads job.generation_mode (default 'both') and
+        runs the appropriate leg(s).
+
+        For mode='both' we split into two sequential Claude CLI invocations
+        (resume leg, then cover-letter leg) so the cover-letter SKILL can
+        read the saved selection_log.json from the resume leg.
+        """
         job = self.store.get_job(job.job_id)
         if job.status != JobStatus.QUEUED:
             return
+
+        mode = job.generation_mode or "both"
+
+        if mode == "both":
+            # Arm score-push deferral BEFORE the resume leg lands GENERATED.
+            # receive_score uses this flag to persist score data without
+            # transitioning to SCORED while the cover-letter leg is still
+            # pending. Cleared in the finally block below.
+            job.defer_scoring = True
+            job = self.store.update_job(job)
+            try:
+                await self._run_one_leg(job, "resume_only", is_final_leg=False)
+                # Re-fetch state — leg may have failed or hit NEEDS_BULLET_APPROVAL.
+                job = self.store.get_job(job.job_id)
+                if job.status != JobStatus.GENERATED:
+                    return
+                # Flip mode for crash-recovery semantics (a retry from
+                # GENERATION_FAILED should resume in cover_letter_only mode,
+                # not re-run the resume leg).
+                job.generation_mode = "cover_letter_only"
+                job = self.store.update_job(job)
+                job = self._transition(job, JobStatus.QUEUED)
+                await self._emit_event("job_updated", _job_summary(job))
+                await self._run_one_leg(job, "cover_letter_only", is_final_leg=True)
+            finally:
+                # Always disarm the deferral flag and apply any pending score.
+                job = self.store.get_job(job.job_id)
+                if job.defer_scoring:
+                    job.defer_scoring = False
+                    job = self.store.update_job(job)
+                    if (
+                        job.status == JobStatus.GENERATED
+                        and job.score.computed_at is not None
+                    ):
+                        job = self._transition(job, JobStatus.SCORED)
+                        await self._emit_event("job_updated", _job_summary(job))
+                        logger.info(
+                            "Applied deferred score for job %s (mode=both): %.1f%%",
+                            job.job_id, job.score.overall_score or 0,
+                        )
+        else:
+            await self._run_one_leg(job, mode, is_final_leg=True)
+
+    async def _run_one_leg(
+        self, job: Job, mode: str, *, is_final_leg: bool
+    ) -> None:
+        """Run a single Claude CLI subprocess for the given mode.
+
+        mode ∈ {"resume_only", "cover_letter_only", "both"}.
+
+        Side effects: transitions QUEUED → GENERATING → (GENERATED |
+        GENERATION_FAILED | NEEDS_BULLET_APPROVAL), updates job.generation,
+        emits SSE events.
+        """
+        job = self.store.get_job(job.job_id)
+        if job.status != JobStatus.QUEUED:
+            return
+
+        # cover_letter_only requires an existing output_folder from a prior
+        # resume run. The dispatcher should have ensured this (auto-promote in
+        # queue_job, or running the resume leg first for mode=both). Defensive
+        # guard here in case someone calls _run_one_leg directly.
+        existing_folder: str | None = None
+        if mode == "cover_letter_only":
+            existing_folder = job.generation.output_folder
+            if not existing_folder or not Path(existing_folder).is_dir():
+                job.error.last_error = (
+                    "cover_letter_only mode requires an existing output_folder "
+                    "from a prior resume run"
+                )
+                job = self._transition(job, JobStatus.GENERATION_FAILED)
+                await self._emit_event("job_updated", _job_summary(job))
+                return
 
         job = self._transition(job, JobStatus.GENERATING)
         await self._emit_event("job_updated", _job_summary(job))
 
         job_dir = config.JOBS_DIR / job.job_id
-        log_path = job_dir / "run" / "generation.log"
+        # Per-leg log file so concurrent legs don't clobber each other and
+        # crash recovery can inspect both. generation.log retained as alias
+        # to the most recent leg for backward compat.
+        log_path = job_dir / "run" / f"generation_{mode}.log"
+        legacy_log = job_dir / "run" / "generation.log"
 
         # Write JD to temp file for Claude
         jd_tmp = config.jd_temp_path(job.job_id)
@@ -488,22 +586,23 @@ class Orchestrator:
         company = job.extraction.company_name or "Unknown"
         role = job.extraction.role_title or "Unknown"
 
-        # Snapshot applications/ tree before invocation
+        # Snapshot applications/ tree before invocation (resume_only + both
+        # use tree-diff fallback; cover_letter_only reuses existing folder).
         apps_dir = config.RESUME_GENERATOR_DIR / "applications"
-        pre_dirs = set()
-        if apps_dir.exists():
+        pre_dirs: set[str] = set()
+        if apps_dir.exists() and mode in ("resume_only", "both"):
             for date_dir in apps_dir.iterdir():
                 if date_dir.is_dir():
                     for role_dir in date_dir.iterdir():
                         if role_dir.is_dir():
                             pre_dirs.add(str(role_dir))
 
-        prompt = (
-            f"Company: {company}, Role: {role}. "
-            f"The full job description is in the file {jd_tmp} — read it and use it. "
-            f"After completing all files, print the exact output folder path as the "
-            f"very last line of your output, prefixed with OUTPUT_PATH: "
-            f"Do not perform the git save step."
+        prompt = self._build_generation_prompt(
+            mode=mode,
+            company=company,
+            role=role,
+            jd_tmp=jd_tmp,
+            existing_folder=existing_folder,
         )
 
         # Build command — inject SKILL.md for deterministic workflow if available
@@ -540,11 +639,18 @@ class Orchestrator:
                     )
                 except asyncio.TimeoutError:
                     logger.warning(
-                        "Generation timed out for job %s after %ds — killing process tree",
-                        job.job_id, config.GENERATION_TIMEOUT_SECONDS,
+                        "Generation timed out for job %s (mode=%s) after %ds — killing process tree",
+                        job.job_id, mode, config.GENERATION_TIMEOUT_SECONDS,
                     )
-                    await _kill_process_tree(proc, label=f"gen:{job.job_id}")
+                    await _kill_process_tree(proc, label=f"gen:{job.job_id}:{mode}")
                     raise
+
+            # Mirror the leg log to the legacy generation.log path so existing
+            # tooling that reads generation.log keeps working (last leg wins).
+            try:
+                shutil.copy2(str(log_path), str(legacy_log))
+            except OSError:
+                pass
 
             self._active_processes.pop(job.job_id, None)
             job = self.store.get_job(job.job_id)
@@ -553,22 +659,40 @@ class Orchestrator:
                 return
 
             if proc.returncode == 0:
-                output_folder = self._resolve_output_folder(log_path, apps_dir, pre_dirs)
+                output_folder = self._resolve_output_folder(
+                    log_path, apps_dir, pre_dirs,
+                    mode=mode, existing_folder=existing_folder,
+                )
                 if output_folder:
-                    package = self._validate_and_copy(job, output_folder)
+                    package = self._validate_and_copy(job, output_folder, mode=mode)
                     if package.valid and package.status:
-                        job.generation = GenerationData(
-                            output_folder=str(output_folder),
-                            completed_at=datetime.now(timezone.utc),
-                            resume_path=str(package.resume_path) if package.resume_path else None,
-                            cover_letter_path=str(package.cover_letter_path) if package.cover_letter_path else None,
-                            selection_log_path=str(package.selection_log_path) if package.selection_log_path else None,
-                            candidate_artifact_path=str(package.candidate_artifact_path) if package.candidate_artifact_path else None,
-                            candidate_generation_status=package.candidate_generation_status,
-                            candidate_generation_error=package.candidate_generation_error,
-                        )
-                        # Extract structured requirements from selection_log
-                        if package.selection_log_path:
+                        # Merge into existing GenerationData so a cover_letter_only
+                        # leg does not clobber resume_path / resume_completed_at
+                        # (and vice versa).
+                        gen = job.generation.model_copy(deep=True)
+                        gen.output_folder = str(output_folder)
+                        gen.completed_at = datetime.now(timezone.utc)
+                        if mode in ("resume_only", "both"):
+                            if package.resume_path:
+                                gen.resume_path = str(package.resume_path)
+                            if package.selection_log_path:
+                                gen.selection_log_path = str(package.selection_log_path)
+                            gen.resume_completed_at = datetime.now(timezone.utc)
+                        if mode in ("cover_letter_only", "both"):
+                            if package.cover_letter_path:
+                                gen.cover_letter_path = str(package.cover_letter_path)
+                            gen.cover_letter_completed_at = datetime.now(timezone.utc)
+                        # NEEDS_BULLET_APPROVAL fields (insufficiency package)
+                        if package.candidate_artifact_path is not None:
+                            gen.candidate_artifact_path = str(package.candidate_artifact_path)
+                        if package.candidate_generation_status is not None:
+                            gen.candidate_generation_status = package.candidate_generation_status
+                        if package.candidate_generation_error is not None:
+                            gen.candidate_generation_error = package.candidate_generation_error
+                        job.generation = gen
+                        # Refresh structured requirements only when this leg
+                        # produced a fresh selection_log.json.
+                        if package.selection_log_path and mode in ("resume_only", "both"):
                             job.requirements = self._extract_requirements(package.selection_log_path)
                         job = self._transition(job, package.status)
                     else:
@@ -591,7 +715,7 @@ class Orchestrator:
             if job.status != JobStatus.CANCELLED:
                 job.error.last_error = f"Generation error: {exc}"
                 job = self._transition(job, JobStatus.GENERATION_FAILED)
-            logger.exception("Generation error for job %s", job.job_id)
+            logger.exception("Generation error for job %s (mode=%s)", job.job_id, mode)
         finally:
             # Re-read to avoid overwriting state changed by cancel_job
             job = self.store.get_job(job.job_id)
@@ -602,13 +726,67 @@ class Orchestrator:
             jd_tmp.unlink(missing_ok=True)
             await self._emit_event("job_updated", _job_summary(job))
 
+    @staticmethod
+    def _build_generation_prompt(
+        *, mode: str, company: str, role: str, jd_tmp: Path, existing_folder: str | None
+    ) -> str:
+        """Build the user prompt the Claude CLI receives. Always begins with a
+        `MODE:` line that the apply-jd SKILL.md uses to skip steps."""
+        # Strip newlines/control chars from extraction-derived strings so a
+        # malicious or messy JD scrape can't inject extra prompt directives
+        # (e.g., a company name containing "\nMODE: resume_only").
+        company = " ".join((company or "").split())
+        role = " ".join((role or "").split())
+        if mode == "cover_letter_only":
+            if not existing_folder:
+                raise ValueError("cover_letter_only requires existing_folder")
+            return (
+                f"MODE: cover_letter_only\n"
+                f"OUTPUT_PATH: {existing_folder}\n"
+                f"Company: {company}, Role: {role}. "
+                f"The full job description is in the file {jd_tmp} — read it and use it. "
+                f"Reuse the existing application folder shown above (cd into it). Read "
+                f"note/selection_log.json from that folder. Build cover_letter.pdf only — "
+                f"do NOT recompile resume. Skip the git save step. "
+                f"Print OUTPUT_PATH: {existing_folder} as the very last line of your output."
+            )
+        if mode == "resume_only":
+            return (
+                f"MODE: resume_only\n"
+                f"Company: {company}, Role: {role}. "
+                f"The full job description is in the file {jd_tmp} — read it and use it. "
+                f"Build resume only. Skip company-research, cover-letter-strategist, and "
+                f"the cover-letter LaTeX compile. After completing resume.pdf and "
+                f"note/selection_log.json, print the exact output folder path as the "
+                f"very last line of your output, prefixed with OUTPUT_PATH: "
+                f"Do not perform the git save step."
+            )
+        # mode == "both" — kept for callers that bypass the dispatcher (tests).
+        return (
+            f"MODE: both\n"
+            f"Company: {company}, Role: {role}. "
+            f"The full job description is in the file {jd_tmp} — read it and use it. "
+            f"After completing all files, print the exact output folder path as the "
+            f"very last line of your output, prefixed with OUTPUT_PATH: "
+            f"Do not perform the git save step."
+        )
+
     def _resolve_output_folder(
-        self, log_path: Path, apps_dir: Path, pre_dirs: set[str]
+        self,
+        log_path: Path,
+        apps_dir: Path,
+        pre_dirs: set[str],
+        *,
+        mode: str = "both",
+        existing_folder: str | None = None,
     ) -> Path | None:
         """
         Two-tier output resolution:
-        1. Primary: parse OUTPUT_PATH: from generation log
-        2. Fallback: diff the applications/ tree
+        1. Primary: parse OUTPUT_PATH: from generation log (works for all modes).
+        2. Fallback:
+           - cover_letter_only: trust the existing_folder from the prior resume run.
+           - resume_only / both: tree-diff applications/ for new folders. Required
+             artifact set depends on mode (resume_only just needs resume.pdf).
         """
         # Primary: parse OUTPUT_PATH from log
         try:
@@ -623,7 +801,22 @@ class Orchestrator:
         except Exception:
             pass
 
-        # Fallback: tree diff
+        # cover_letter_only: don't tree-diff (the run wrote into an existing
+        # folder, not a new one). Trust the prior resume leg's folder.
+        if mode == "cover_letter_only":
+            if existing_folder:
+                candidate = Path(existing_folder)
+                if candidate.is_dir():
+                    logger.info(
+                        "Output folder from existing_folder fallback: %s", candidate
+                    )
+                    return candidate
+            logger.error(
+                "cover_letter_only: OUTPUT_PATH missing from log and existing_folder unavailable"
+            )
+            return None
+
+        # Fallback: tree diff (resume_only / both)
         if not apps_dir.exists():
             return None
         post_dirs = set()
@@ -634,11 +827,14 @@ class Orchestrator:
                         post_dirs.add(str(role_dir))
 
         new_dirs = post_dirs - pre_dirs
-        # Filter: must contain both PDFs + some compile log
+        # Required-artifact set depends on mode.
         candidates = []
         for d in new_dirs:
             dp = Path(d)
-            has_pdfs = (dp / "resume.pdf").exists() and (dp / "cover_letter.pdf").exists()
+            if mode == "resume_only":
+                has_pdfs = (dp / "resume.pdf").exists()
+            else:  # both
+                has_pdfs = (dp / "resume.pdf").exists() and (dp / "cover_letter.pdf").exists()
             has_compile = (
                 (dp / "note" / "compile.log").exists()
                 or (dp / "note" / "compile_resume.log").exists()
@@ -655,49 +851,67 @@ class Orchestrator:
             logger.error("Fail-closed: 0 candidate output folders found")
         return None
 
-    def _validate_and_copy(self, job: Job, output_folder: Path) -> GenerationPackageResult:
-        """Validate outputs and copy artifacts to job workspace."""
+    def _validate_and_copy(
+        self,
+        job: Job,
+        output_folder: Path,
+        *,
+        mode: str = "both",
+    ) -> GenerationPackageResult:
+        """Validate outputs and copy artifacts to job workspace.
+
+        Mode-aware: only requires the artifacts the leg promised.
+        - resume_only: requires resume.pdf + selection_log.json (NEEDS_BULLET_APPROVAL
+          flow possible because the bullet-approval signal comes from resume-builder).
+        - cover_letter_only: requires cover_letter.pdf only; reuses selection_log
+          from the prior resume run (no NEEDS_BULLET_APPROVAL check).
+        - both: full validation (legacy path).
+        """
         resume = output_folder / "resume.pdf"
         cover_letter = output_folder / "cover_letter.pdf"
-        compile_log = output_folder / "note" / "compile.log"
         selection_log = output_folder / "note" / "selection_log.json"
 
-        sl_data = self._load_selection_log(selection_log)
-        if sl_data is None:
-            return GenerationPackageResult(False, error="selection_log.json missing or unreadable")
-        if "jd_requirements" not in sl_data:
-            logger.error("selection_log.json missing 'jd_requirements' key")
-            return GenerationPackageResult(False, error="selection_log.json missing jd_requirements")
+        # selection_log + NEEDS_BULLET_APPROVAL gate only fires when the resume
+        # leg ran in this invocation (resume_only or both). For cover_letter_only,
+        # selection_log was already produced by the prior resume leg.
+        if mode in ("resume_only", "both"):
+            sl_data = self._load_selection_log(selection_log)
+            if sl_data is None:
+                return GenerationPackageResult(False, error="selection_log.json missing or unreadable")
+            if "jd_requirements" not in sl_data:
+                logger.error("selection_log.json missing 'jd_requirements' key")
+                return GenerationPackageResult(False, error="selection_log.json missing jd_requirements")
 
-        nba = sl_data.get("needs_bullet_approval")
-        if nba is not None:
-            if not isinstance(nba, dict):
-                logger.error("needs_bullet_approval signal must be an object")
-                return GenerationPackageResult(False, error="Malformed needs_bullet_approval signal")
-            if self._is_needs_bullet_approval_signal(sl_data):
-                error = self._validate_insufficiency_package(output_folder, sl_data)
-                if error:
-                    return GenerationPackageResult(False, error=error)
-                return self._copy_insufficiency_artifacts(job, output_folder, sl_data)
-            if nba.get("triggered") is True:
-                logger.error("Unsupported needs_bullet_approval reason: %s", nba.get("reason"))
-                return GenerationPackageResult(False, error="Unsupported needs_bullet_approval reason")
+            nba = sl_data.get("needs_bullet_approval")
+            if nba is not None:
+                if not isinstance(nba, dict):
+                    logger.error("needs_bullet_approval signal must be an object")
+                    return GenerationPackageResult(False, error="Malformed needs_bullet_approval signal")
+                if self._is_needs_bullet_approval_signal(sl_data):
+                    error = self._validate_insufficiency_package(output_folder, sl_data)
+                    if error:
+                        return GenerationPackageResult(False, error=error)
+                    return self._copy_insufficiency_artifacts(job, output_folder, sl_data)
+                if nba.get("triggered") is True:
+                    logger.error("Unsupported needs_bullet_approval reason: %s", nba.get("reason"))
+                    return GenerationPackageResult(False, error="Unsupported needs_bullet_approval reason")
 
-        # Validate
-        if not resume.exists() or resume.stat().st_size == 0:
-            logger.error("resume.pdf missing or empty")
-            return GenerationPackageResult(False, error="resume.pdf missing or empty")
-        if not cover_letter.exists() or cover_letter.stat().st_size == 0:
-            logger.error("cover_letter.pdf missing or empty")
-            return GenerationPackageResult(False, error="cover_letter.pdf missing or empty")
+        # Mode-aware required-artifact existence checks.
+        if mode in ("resume_only", "both"):
+            if not resume.exists() or resume.stat().st_size == 0:
+                logger.error("resume.pdf missing or empty")
+                return GenerationPackageResult(False, error="resume.pdf missing or empty")
+        if mode in ("cover_letter_only", "both"):
+            if not cover_letter.exists() or cover_letter.stat().st_size == 0:
+                logger.error("cover_letter.pdf missing or empty")
+                return GenerationPackageResult(False, error="cover_letter.pdf missing or empty")
 
-        # Check compile logs — look for successful PDF writing indicators
-        # The workflow may use compile.log, compile_resume.log, or compile_cover_letter.log
-        compile_logs = [
-            compile_log,
-            output_folder / "note" / "compile_resume.log",
-            output_folder / "note" / "compile_cover_letter.log",
-        ]
+        # Compile-log evidence — only check the logs the leg should have produced.
+        compile_logs: list[Path] = [output_folder / "note" / "compile.log"]
+        if mode in ("resume_only", "both"):
+            compile_logs.append(output_folder / "note" / "compile_resume.log")
+        if mode in ("cover_letter_only", "both"):
+            compile_logs.append(output_folder / "note" / "compile_cover_letter.log")
         found_compile_evidence = False
         for cl in compile_logs:
             try:
@@ -713,7 +927,7 @@ class Orchestrator:
         if not found_compile_evidence:
             logger.warning("No compile log evidence found, relying on PDF existence + size check")
 
-        return self._copy_final_artifacts(job, output_folder)
+        return self._copy_final_artifacts(job, output_folder, mode=mode)
 
     @staticmethod
     def _load_selection_log(selection_log: Path) -> dict | None:
@@ -1008,45 +1222,67 @@ class Orchestrator:
         ):
             (out_dir / name).unlink(missing_ok=True)
 
-    def _copy_final_artifacts(self, job: Job, output_folder: Path) -> GenerationPackageResult:
+    def _copy_final_artifacts(
+        self,
+        job: Job,
+        output_folder: Path,
+        *,
+        mode: str = "both",
+    ) -> GenerationPackageResult:
+        """Copy successful artifacts to the job workspace.
+
+        Mode-aware: cover_letter_only does NOT clear existing artifacts (would
+        erase the resume from a prior run). resume_only and both clear and
+        re-copy as today.
+        """
         job_dir = config.JOBS_DIR / job.job_id
         out_dir = job_dir / "output"
         resume = output_folder / "resume.pdf"
         cover_letter = output_folder / "cover_letter.pdf"
         selection_log = output_folder / "note" / "selection_log.json"
 
-        self._clear_output_artifacts(out_dir)
-        shutil.copy2(str(resume), str(out_dir / "resume.pdf"))
-        shutil.copy2(str(cover_letter), str(out_dir / "cover_letter.pdf"))
-        shutil.copy2(str(selection_log), str(out_dir / "selection_log.json"))
+        # Clear existing artifacts only when this leg owns the resume side.
+        if mode in ("resume_only", "both"):
+            self._clear_output_artifacts(out_dir)
 
-        # Copy optional artifacts
+        resume_out = out_dir / "resume.pdf"
+        cover_letter_out = out_dir / "cover_letter.pdf"
+        selection_log_out = out_dir / "selection_log.json"
+
+        if mode in ("resume_only", "both"):
+            shutil.copy2(str(resume), str(resume_out))
+            shutil.copy2(str(selection_log), str(selection_log_out))
+        if mode in ("cover_letter_only", "both"):
+            shutil.copy2(str(cover_letter), str(cover_letter_out))
+
+        # Optional notes (only the resume-bearing leg refreshes it; cover_letter
+        # leg writes alongside the existing one if present).
         notes = output_folder / "note" / "notes.md"
         if notes.exists():
             shutil.copy2(str(notes), str(out_dir / "notes.md"))
 
-        # Write metadata
         metadata = {
             "job_id": job.job_id,
             "source_url": job.source_url,
             "company_name": job.extraction.company_name,
             "role_title": job.extraction.role_title,
             "source_output_folder": str(output_folder),
-            "resume_pdf": str(out_dir / "resume.pdf"),
-            "cover_letter_pdf": str(out_dir / "cover_letter.pdf"),
+            "mode": mode,
+            "resume_pdf": str(resume_out) if resume_out.exists() else None,
+            "cover_letter_pdf": str(cover_letter_out) if cover_letter_out.exists() else None,
             "copied_at": datetime.now(timezone.utc).isoformat(),
         }
         (out_dir / "metadata.json").write_text(
             json.dumps(metadata, indent=2), encoding="utf-8"
         )
 
-        logger.info("Artifacts copied to workspace for job %s", job.job_id)
+        logger.info("Artifacts copied to workspace for job %s (mode=%s)", job.job_id, mode)
         return GenerationPackageResult(
             True,
             status=JobStatus.GENERATED,
-            selection_log_path=out_dir / "selection_log.json",
-            resume_path=out_dir / "resume.pdf",
-            cover_letter_path=out_dir / "cover_letter.pdf",
+            selection_log_path=selection_log_out if mode in ("resume_only", "both") else None,
+            resume_path=resume_out if mode in ("resume_only", "both") else None,
+            cover_letter_path=cover_letter_out if mode in ("cover_letter_only", "both") else None,
         )
 
     def _copy_insufficiency_artifacts(
@@ -1215,26 +1451,105 @@ class Orchestrator:
         return job
 
     async def approve_job(self, job_id: str) -> Job:
-        """Approve a job for generation (from scraped or extraction_failed with JD)."""
+        """Backward-compat shim for /api/jobs/{id}/approve.
+
+        Delegates to queue_job(mode='both', force=False) so legacy callers
+        and existing tests keep working unchanged.
+        """
+        return await self.queue_job(job_id, mode="both", force=False)
+
+    async def queue_job(
+        self,
+        job_id: str,
+        *,
+        mode: str = "both",
+        force: bool = False,
+    ) -> Job:
+        """Queue a job for generation in the requested mode.
+
+        - mode ∈ {"resume_only", "cover_letter_only", "both"}.
+        - Auto-promotes cover_letter_only → both when no resume exists yet
+          (the cover-letter SKILL needs the prior leg's selection_log.json).
+        - Raises ArtifactConflictError when the requested mode would overwrite
+          an existing *_completed_at timestamp and force=False. The server
+          translates this to HTTP 409 for the UI overwrite-confirm dialog.
+        - Persists job.generation_mode so start_generation_loop and crash
+          recovery resume in the same mode without external state.
+        """
+        if mode not in ("resume_only", "cover_letter_only", "both"):
+            raise StateTransitionError(f"Invalid generation mode: {mode}")
+
         job = self.store.get_job(job_id)
 
+        # Auto-promote: cover_letter_only on a job without a resume → both.
+        # Use both the timestamp AND the legacy resume_path field to detect
+        # legacy-completed jobs whose timestamps are missing.
+        has_resume = bool(
+            job.generation.resume_completed_at or job.generation.resume_path
+        )
+        if mode == "cover_letter_only" and not has_resume:
+            logger.info(
+                "Auto-promoting job %s from cover_letter_only to both (no resume yet)",
+                job_id,
+            )
+            mode = "both"
+
+        # Re-run guard.
+        if not force:
+            has_cover_letter = bool(
+                job.generation.cover_letter_completed_at
+                or job.generation.cover_letter_path
+            )
+            if mode in ("resume_only", "both") and has_resume:
+                raise ArtifactConflictError(
+                    "resume",
+                    "resume.pdf already exists. Re-generate with force=true to overwrite.",
+                )
+            if mode in ("cover_letter_only", "both") and has_cover_letter:
+                raise ArtifactConflictError(
+                    "cover_letter",
+                    "cover_letter.pdf already exists. Re-generate with force=true to overwrite.",
+                )
+
+        # Allow EXTRACTION_FAILED (with manual JD) to be promoted to SCRAPED first.
         if job.status == JobStatus.EXTRACTION_FAILED:
             if not job.extraction.job_description:
-                raise StateTransitionError("Cannot approve: job_description is required")
+                raise StateTransitionError("Cannot queue: job_description is required")
             job = self._transition(job, JobStatus.SCRAPED)
 
-        if job.status != JobStatus.SCRAPED:
+        allowed_sources = {
+            JobStatus.SCRAPED,
+            JobStatus.GENERATION_FAILED,
+            JobStatus.GENERATED,
+        }
+        if job.status not in allowed_sources:
             raise StateTransitionError(
-                f"Cannot approve job in {job.status.value} state"
+                f"Cannot queue job in {job.status.value} state "
+                f"(allowed: {', '.join(sorted(s.value for s in allowed_sources))})"
             )
 
-        # Save snapshot of extraction data at approval time
-        job_dir = config.JOBS_DIR / job.job_id
-        snapshot = job.extraction.model_dump(mode="json")
-        (job_dir / "input" / "job.json").write_text(
-            json.dumps(snapshot, indent=2), encoding="utf-8"
-        )
+        # Force re-run on a GENERATED job: clear the relevant timestamp(s) so
+        # the run actually overwrites the artifact rather than being a no-op
+        # under any future idempotence check, AND so the merged GenerationData
+        # reflects the new completion time once the leg succeeds.
+        if force and job.status == JobStatus.GENERATED:
+            gen = job.generation.model_copy(deep=True)
+            if mode in ("resume_only", "both"):
+                gen.resume_completed_at = None
+            if mode in ("cover_letter_only", "both"):
+                gen.cover_letter_completed_at = None
+            job.generation = gen
 
+        # Save snapshot of extraction data at queue time (mirrors prior approve_job).
+        job_dir = config.JOBS_DIR / job.job_id
+        if job.status == JobStatus.SCRAPED:
+            snapshot = job.extraction.model_dump(mode="json")
+            (job_dir / "input" / "job.json").write_text(
+                json.dumps(snapshot, indent=2), encoding="utf-8"
+            )
+
+        job.generation_mode = mode
+        job = self.store.update_job(job)
         job = self._transition(job, JobStatus.QUEUED)
         await self._emit_event("job_updated", _job_summary(job))
         return job
@@ -1306,6 +1621,12 @@ class Orchestrator:
 
         Idempotent: if already SCORED, returns existing job without error
         (handles network retries and duplicate SSE-driven pushes).
+
+        Deferred scoring (mode='both' race fix): if this push arrives during
+        the narrow window between the resume leg landing GENERATED and the
+        cover-letter leg starting, persist the score data but do NOT
+        transition. The dispatcher will pick up the deferred score after
+        the cover-letter leg lands and complete the SCORED transition.
         """
         job = self.store.get_job(job_id)
         if job.status == JobStatus.SCORED:
@@ -1332,6 +1653,19 @@ class Orchestrator:
             requirement_scores=score_data.get("requirement_scores", []),
             computed_at=datetime.now(timezone.utc),
         )
+
+        # Defer the SCORED transition if the dispatcher has armed defer_scoring
+        # (mode='both' run between legs). The dispatcher will apply this score
+        # after the cover-letter leg lands.
+        if job.defer_scoring:
+            job = self.store.update_job(job)
+            await self._emit_event("job_updated", _job_summary(job))
+            logger.info(
+                "Job %s score deferred (defer_scoring=True): %.1f%%",
+                job_id, overall,
+            )
+            return job
+
         job = self._transition(job, JobStatus.SCORED)
         await self._emit_event("job_updated", _job_summary(job))
         logger.info("Job %s scored: %.1f%%", job_id, overall)
@@ -1640,6 +1974,10 @@ def _job_summary(job: Job) -> dict:
 
     Enriched in Wave 4: includes generation paths, score, and JD text
     so the frontend can update without re-fetching the full job.
+
+    Schema v3 adds: generation_mode (last requested mode), and per-leg
+    timestamps resume_completed_at / cover_letter_completed_at — the UI
+    uses these to render the "Generate Cover Letter" partial-state button.
     """
     summary: dict = {
         "job_id": job.job_id,
@@ -1651,14 +1989,21 @@ def _job_summary(job: Job) -> dict:
         "salary": job.extraction.salary,
         "apply_method": job.extraction.apply_method,
         "error": job.error.last_error,
+        "generation_mode": job.generation_mode,
     }
 
     # Include JD text once available (SCRAPED+)
     if job.extraction.job_description:
         summary["jd_text"] = job.extraction.job_description
 
-    # Include generation data when available (GENERATED+)
-    if job.generation.completed_at:
+    # Surface generation block whenever ANY generation activity has happened
+    # (legacy completed_at OR a per-leg timestamp). UI uses this to render
+    # partial-state controls before the full GENERATED transition lands.
+    if (
+        job.generation.completed_at
+        or job.generation.resume_completed_at
+        or job.generation.cover_letter_completed_at
+    ):
         summary["generation"] = {
             "output_folder": job.generation.output_folder,
             "resume_path": job.generation.resume_path,
@@ -1668,6 +2013,8 @@ def _job_summary(job: Job) -> dict:
             "candidate_generation_status": job.generation.candidate_generation_status,
             "candidate_generation_error": job.generation.candidate_generation_error,
             "completed_at": job.generation.completed_at.isoformat() if job.generation.completed_at else None,
+            "resume_completed_at": job.generation.resume_completed_at.isoformat() if job.generation.resume_completed_at else None,
+            "cover_letter_completed_at": job.generation.cover_letter_completed_at.isoformat() if job.generation.cover_letter_completed_at else None,
         }
 
     # Include requirements count (GENERATED+)

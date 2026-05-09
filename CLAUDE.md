@@ -97,7 +97,15 @@ cmd = ["claude", "--print", "--dangerously-skip-permissions",
        "-p", prompt]
 ```
 
-Normal successful outputs: `resume.pdf`, `cover_letter.pdf`, `note/selection_log.json` (with `jd_requirements` key).
+The user prompt now begins with a `MODE:` directive (`resume_only` | `cover_letter_only` | `both`) that selects which artifacts the SKILL produces. Required outputs depend on the mode:
+
+| Mode | Required outputs |
+|---|---|
+| `resume_only` | `resume.pdf`, `note/selection_log.json` (with `jd_requirements`) |
+| `cover_letter_only` | `cover_letter.pdf` (selection_log already exists from prior resume run) |
+| `both` (legacy default) | `resume.pdf`, `cover_letter.pdf`, `note/selection_log.json` |
+
+In normal flow, `mode='both'` is split by the orchestrator into two sequential Claude CLI invocations (resume leg → cover-letter leg), each with its own MODE directive — the SKILL never sees `MODE: both` from the dispatcher.
 
 Insufficient approved-source bullets are a valid blocked generation package, not a generic generation failure, only when `note/selection_log.json` contains:
 

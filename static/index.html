@@ -29,6 +29,11 @@ textarea { width: 100%; height: 64px; border: 1px solid #ccc; border-radius: 4px
 .btn-primary { background: #222; color: #fff; border-color: #222; }
 .btn-primary:hover { background: #444; }
 .btn-sm { padding: 3px 8px; font-size: 11px; }
+.btn-group { display: inline-flex; border: 1px solid #222; border-radius: 4px; overflow: hidden; }
+.btn-group .btn { border: none; border-radius: 0; border-right: 1px solid #444; background: #222; color: #fff; padding: 5px 12px; }
+.btn-group .btn:last-child { border-right: none; }
+.btn-group .btn:hover { background: #444; }
+.notice { font-size: 12px; padding: 6px 10px; background: #fef3c7; color: #92400e; border-radius: 4px; margin-top: 8px; }
 .btn-apply { background: #166534; color: #fff; border-color: #166534; font-size: 11px; padding: 3px 10px; }
 .btn-apply:hover { background: #15803d; }
 .btn-apply:disabled { background: #9ca3af; border-color: #9ca3af; cursor: not-allowed; }
@@ -312,8 +317,24 @@ function renderDetail(job) {
   const actions = document.getElementById('detail-actions');
   let btns = '';
   if (editable) {
-    btns += `<button class="btn btn-primary" onclick="approveJob('${job.job_id}')">Approve &amp; Queue</button>`;
+    btns += `<div class="btn-group" role="group" aria-label="Generation mode">
+      <button class="btn" onclick="queueJob('${job.job_id}','resume_only')" title="Generate resume only — fastest, lets you triage many jobs">Resume</button>
+      <button class="btn" onclick="queueJob('${job.job_id}','cover_letter_only')" title="Generate cover letter only (auto-promotes to R+C if no resume yet)">Cover Letter</button>
+      <button class="btn" onclick="queueJob('${job.job_id}','both')" title="Generate both resume and cover letter">R+C</button>
+    </div>`;
     btns += `<button class="btn" onclick="saveEdits('${job.job_id}')">Save Edits</button>`;
+  }
+  // Partial-state continuation: GENERATED with one artifact missing.
+  // Resume-without-cover-letter is the common case (lazy cover letter flow).
+  if (isGeneratedStatus(job.status)) {
+    const gen = job.generation || {};
+    const hasResume = !!(gen.resume_completed_at || gen.resume_path);
+    const hasCL = !!(gen.cover_letter_completed_at || gen.cover_letter_path);
+    if (hasResume && !hasCL) {
+      btns += `<button class="btn btn-primary" onclick="queueJob('${job.job_id}','cover_letter_only')">Generate Cover Letter</button>`;
+    } else if (hasCL && !hasResume) {
+      btns += `<button class="btn btn-primary" onclick="queueJob('${job.job_id}','resume_only')">Generate Resume</button>`;
+    }
   }
   if (['extraction_failed', 'generation_failed', 'apply_failed'].includes(job.status)) {
     btns += `<button class="btn" onclick="retryJob('${job.job_id}')">Retry</button>`;
@@ -393,8 +414,44 @@ async function saveEdits(jobId) {
 }
 
 async function approveJob(jobId) {
+  // Legacy entry point — equivalent to queueJob(id, 'both').
+  return queueJob(jobId, 'both');
+}
+
+async function queueJob(jobId, mode, force = false) {
   try {
-    await api('POST', `/api/jobs/${jobId}/approve`);
+    const res = await fetch(`/api/jobs/${jobId}/queue`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode, force }),
+    });
+    if (res.status === 409) {
+      const err = await res.json().catch(() => ({}));
+      const detail = err.detail;
+      if (detail && typeof detail === 'object' && detail.code === 'artifact_exists') {
+        const label = detail.mode === 'resume' ? 'resume'
+                    : detail.mode === 'cover_letter' ? 'cover letter'
+                    : 'these artifacts';
+        if (confirm(`The ${label} already exists. Re-generate and overwrite?`)) {
+          return queueJob(jobId, mode, true);
+        }
+        return;
+      }
+      throw new Error(typeof detail === 'string' ? detail : (detail?.message || 'Conflict'));
+    }
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: res.statusText }));
+      throw new Error(typeof err.detail === 'string' ? err.detail : 'Request failed');
+    }
+    const job = await res.json();
+    // Surface auto-promotion: user asked for cover_letter_only but server promoted to both.
+    if (mode === 'cover_letter_only' && job.generation_mode === 'both') {
+      const errEl = document.getElementById('detail-error');
+      if (errEl) {
+        errEl.innerHTML = '<div class="notice">No resume yet — generating both.</div>';
+        setTimeout(() => { if (errEl.querySelector('.notice')) errEl.innerHTML = ''; }, 6000);
+      }
+    }
     await loadJobs();
   } catch(e) { alert(e.message); }
 }

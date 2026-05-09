@@ -169,7 +169,7 @@ class TestStatusMigration:
         # Read back — should migrate
         loaded = store.get_job(job.job_id)
         assert loaded.status == JobStatus.SCRAPED
-        assert loaded.schema_version == 2
+        assert loaded.schema_version == 3
 
     def test_completed_migrates_to_generated(self, store):
         job = store.create_job("https://example.com/migrate-2")
@@ -197,7 +197,7 @@ class TestStatusMigration:
         job = store.create_job("https://example.com/no-migrate")
         loaded = store.get_job(job.job_id)
         assert loaded.status == JobStatus.SUBMITTED
-        assert loaded.schema_version == 2
+        assert loaded.schema_version == 3
 
     def test_new_fields_have_defaults(self, store):
         """Old v1 jobs missing new fields should get defaults."""
