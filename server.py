@@ -20,7 +20,7 @@ from sse_starlette.sse import EventSourceResponse
 
 import config
 from models import JobStatus, ExtractionEditRequest
-from orchestrator import Orchestrator, StateTransitionError
+from orchestrator import ArtifactConflictError, Orchestrator, StateTransitionError
 from persistence import JsonJobStore, JobNotFoundError
 
 # ── Logging setup ─────────────────────────────────────────────
@@ -138,11 +138,46 @@ async def edit_job(job_id: str, req: ExtractionEditRequest):
 
 @app.post("/api/jobs/{job_id}/approve")
 async def approve_job(job_id: str):
+    """Backward-compat: equivalent to POST /queue with mode='both'."""
     try:
         job = await orchestrator.approve_job(job_id)
         return job.model_dump(mode="json")
     except JobNotFoundError:
         raise HTTPException(status_code=404, detail="Job not found")
+    except ArtifactConflictError as e:
+        raise HTTPException(
+            status_code=409,
+            detail={"code": "artifact_exists", "mode": e.mode, "message": e.message},
+        )
+    except StateTransitionError as e:
+        raise HTTPException(status_code=409, detail=str(e))
+
+
+class QueueRequest(BaseModel):
+    mode: str = "both"   # "resume_only" | "cover_letter_only" | "both"
+    force: bool = False
+
+
+@app.post("/api/jobs/{job_id}/queue")
+async def queue_job(job_id: str, req: QueueRequest):
+    """Queue a job for generation in the requested mode.
+
+    Mode-aware: produces only the artifact(s) requested.
+    Auto-promotes cover_letter_only → both when no resume exists.
+    Returns 409 with detail.code='artifact_exists' when the requested mode
+    would overwrite an existing artifact and force=false; the UI uses this
+    to drive its overwrite-confirm dialog.
+    """
+    try:
+        job = await orchestrator.queue_job(job_id, mode=req.mode, force=req.force)
+        return job.model_dump(mode="json")
+    except JobNotFoundError:
+        raise HTTPException(status_code=404, detail="Job not found")
+    except ArtifactConflictError as e:
+        raise HTTPException(
+            status_code=409,
+            detail={"code": "artifact_exists", "mode": e.mode, "message": e.message},
+        )
     except StateTransitionError as e:
         raise HTTPException(status_code=409, detail=str(e))
 

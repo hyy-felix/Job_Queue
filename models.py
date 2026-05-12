@@ -20,13 +20,13 @@ from __future__ import annotations
 
 import enum
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Literal, Optional
 from uuid import uuid4
 
 from pydantic import BaseModel, Field
 
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 
 
 class JobStatus(str, enum.Enum):
@@ -126,8 +126,11 @@ LEGAL_TRANSITIONS: dict[JobStatus, set[JobStatus]] = {
         JobStatus.QUEUED,       # retry (via queue)
         JobStatus.CANCELLED,
     },
-    # GENERATED: artifacts exist. Can score, apply directly, or manual handoff.
+    # GENERATED: artifacts exist. Can score, apply directly, manual handoff,
+    # or re-queue for the missing leg (resume-only → cover_letter_only, or
+    # explicit overwrite via force=true on /api/jobs/{id}/queue).
     JobStatus.GENERATED: {
+        JobStatus.QUEUED,        # lazy cover-letter / overwrite re-run
         JobStatus.SCORED,
         JobStatus.APPLYING,
         JobStatus.MANUAL_APPLY,
@@ -200,6 +203,9 @@ class ExtractionEditRequest(BaseModel):
     apply_method: Optional[str] = None
 
 
+GenerationMode = Literal["resume_only", "cover_letter_only", "both"]
+
+
 class GenerationData(BaseModel):
     output_folder: Optional[str] = None
     completed_at: Optional[datetime] = None
@@ -210,6 +216,10 @@ class GenerationData(BaseModel):
     candidate_artifact_path: Optional[str] = None
     candidate_generation_status: Optional[str] = None
     candidate_generation_error: Optional[str] = None
+    # Per-leg completion timestamps (schema v3). Resume-only or cover-letter-only
+    # runs populate just one. UI infers "partial" from missing timestamp.
+    resume_completed_at: Optional[datetime] = None
+    cover_letter_completed_at: Optional[datetime] = None
 
 
 class ScoreData(BaseModel):
@@ -283,3 +293,12 @@ class Job(BaseModel):
     error: ErrorInfo = Field(default_factory=ErrorInfo)
     worker: WorkerInfo = Field(default_factory=WorkerInfo)
     is_linkedin: bool = False
+    # Schema v3: which artifact(s) the most recent /queue request asked for.
+    # Persisted on the Job so start_generation_loop and crash recovery can
+    # resume in the same mode without an external queue payload.
+    generation_mode: Optional[GenerationMode] = None
+    # Schema v3: set True while a mode='both' run is between legs (resume
+    # done, cover-letter not yet started). receive_score checks this to
+    # defer the SCORED transition so an external score push that lands in
+    # the narrow gap doesn't strand the cover-letter leg.
+    defer_scoring: bool = False

@@ -29,7 +29,7 @@ class TestJobModel:
         assert job.source_url == "https://example.com/job/1"
         assert job.status == JobStatus.SUBMITTED
         assert job.schema_version == SCHEMA_VERSION
-        assert job.schema_version == 2
+        assert job.schema_version == 3
         assert job.version == 1
         assert job.job_id  # non-empty
         assert job.created_at is not None
