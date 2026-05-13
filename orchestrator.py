@@ -354,10 +354,14 @@ class Orchestrator:
                         "python", str(config.EXTRACT_SCRIPT),
                         job.source_url, str(output_path),
                     ]
-                    # Attach to existing Chrome via CDP if configured
-                    if config.CDP_URL:
-                        cmd.extend(["--cdp-url", config.CDP_URL])
-                        logger.info("Using CDP browser at %s for job %s", config.CDP_URL, job.job_id)
+                    # Attach to (or auto-launch) a persistent CDP Chrome so the
+                    # user logs in once and the session survives across jobs.
+                    # to_thread() because get_cdp_url() may block ~1-3s while
+                    # Chrome boots on its first call.
+                    cdp_url = await asyncio.to_thread(config.get_cdp_url)
+                    if cdp_url:
+                        cmd.extend(["--cdp-url", cdp_url])
+                        logger.info("Using CDP browser at %s for job %s", cdp_url, job.job_id)
 
                 # Build env that bypasses proxy for CDP (localhost) connections
                 sub_env = _build_no_proxy_env()
@@ -1762,13 +1766,15 @@ class Orchestrator:
             str(output_dir),
             str(config.PROFILE_PATH),
         ]
-        # Attach to existing Chrome via CDP if configured
-        if config.CDP_URL:
-            cmd.extend(["--cdp-url", config.CDP_URL])
+        # Attach to (or auto-launch) the persistent CDP Chrome. Apply MUST run
+        # in the same browser as extraction so the LinkedIn session is reused.
+        cdp_url = await asyncio.to_thread(config.get_cdp_url)
+        if cdp_url:
+            cmd.extend(["--cdp-url", cdp_url])
 
         logger.info(
             "Apply started for job %s: url=%s, cdp=%s",
-            job_id, job.source_url, config.CDP_URL or "none",
+            job_id, job.source_url, cdp_url or "none",
         )
 
         try:
@@ -1834,8 +1840,10 @@ class Orchestrator:
                     # ── Review agent (confidence-gated) ────────────
                     # Guards: CDP required (browser must persist for user to submit)
                     #         ANTHROPIC_API_KEY required for LLM review
+                    # auto_launch=False: review only runs when extraction already
+                    # established a CDP browser. Don't spawn Chrome just to gate.
                     review_ran = False
-                    if config.CDP_URL and os.environ.get("ANTHROPIC_API_KEY"):
+                    if config.get_cdp_url(auto_launch=False) and os.environ.get("ANTHROPIC_API_KEY"):
                         review_ran = await self._run_review_agent(job, output_dir)
 
                     if review_ran:

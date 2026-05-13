@@ -153,10 +153,15 @@ Graceful fallback: if SKILL.md is missing, uses free-form prompt.
 # Install deps
 pip3 install -r requirements.txt
 
-# Run server (port 8080 is the default)
+# Run server (port 8080 is the default).
+# On macOS, the server auto-launches a persistent Chrome with
+# --remote-debugging-port=9222 --user-data-dir="$HOME/.chrome-job-queue"
+# on the first extraction, so LinkedIn login persists across jobs and across
+# server restarts. Set JQ_CDP_AUTO_LAUNCH=0 to disable, or JQ_CDP_URL to use
+# a Chrome you launched yourself.
 python3 server.py
 
-# Run with persistent Chrome (recommended for apply + review):
+# Manual Chrome (Linux/Windows, or to opt out of auto-launch):
 "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
   --remote-debugging-port=9222 --user-data-dir="$HOME/.chrome-job-queue"
 JQ_CDP_URL=http://localhost:9222 python3 server.py
@@ -173,7 +178,12 @@ python3 -m pytest tests/ -v
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `JQ_PORT` | 8080 | Server port |
-| `JQ_CDP_URL` | (empty) | CDP URL for persistent Chrome (e.g., `http://localhost:9222`) |
+| `JQ_CDP_URL` | (empty) | Explicit CDP URL (e.g., `http://localhost:9222`). Overrides probe + auto-launch. |
+| `JQ_CDP_AUTO_LAUNCH` | `1` | macOS only: auto-launch a persistent Chrome on first extraction when no CDP browser is running. Set to `0` to disable. |
+| `JQ_CDP_PORT` | `9222` | Port to launch Chrome on when auto-launching. |
+| `JQ_CDP_USER_DATA_DIR` | `~/.chrome-job-queue` | Persistent user-data-dir for the auto-launched Chrome (this is where cookies/logins live). |
+| `JQ_CDP_LAUNCH_TIMEOUT` | `15` | Seconds to wait for the launched Chrome to answer `/json/version`. |
+| `JQ_CHROME_BINARY` | `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome` | Path to Chrome for auto-launch. |
 | `JQ_MOCK_EXTRACTION` | false | Use mock extraction (no LLM needed) |
 | `JQ_BROWSER_USE_REPO` | (hardcoded path) | Path to browser-use repo |
 | `JQ_RESUME_GENERATOR_DIR` | `/Volumes/Hyy Mac mini HD/Program Data/GitHub/Re-Generator` | Path to resume generator repo |
